@@ -10,23 +10,38 @@ import SwiftData
 
 @main
 struct FinancialCalculatorKitApp: App {
-    var sharedModelContainer: ModelContainer = {
+    let sharedModelContainer: ModelContainer
+    
+    init() {
+        // Register custom transformers BEFORE creating the ModelContainer
+        ValueTransformer.setValueTransformer(
+            CashFlowsTransformer(),
+            forName: NSValueTransformerName("CashFlowsTransformer")
+        )
+        
+        // Now create the ModelContainer
         let schema = Schema([
-            Item.self,
+            FinancialCalculation.self,
+            TimeValueCalculation.self,
+            LoanCalculation.self,
+            BondCalculation.self,
+            InvestmentCalculation.self,
+            DepreciationCalculation.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
-    }()
+    }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        .windowResizability(.contentSize)
     }
 }
