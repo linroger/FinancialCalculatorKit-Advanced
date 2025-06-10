@@ -1,15 +1,6 @@
 {
-  "originHash" : "d2b57bef67b52637c59d76d6f4c844d0dcce548ce80551907603b4847cdaa962",
+  "originHash" : "f58afbe9e6202cf8be0c79ac77bc75dec8f4d0fd0c529878184978c442c8473d",
   "pins" : [
-    {
-      "identity" : "expression",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/nicklockwood/Expression.git",
-      "state" : {
-        "revision" : "95ffe4c352e456cede933d9910d25b9c84039d1b",
-        "version" : "0.13.9"
-      }
-    },
     {
       "identity" : "latexswiftui",
       "kind" : "remoteSourceControl",
