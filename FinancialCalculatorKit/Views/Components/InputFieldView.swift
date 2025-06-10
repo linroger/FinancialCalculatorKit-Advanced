@@ -240,6 +240,7 @@ struct CurrencyInputField: View {
     let helpText: String?
     
     @State private var stringValue: String = ""
+    @State private var isEditing: Bool = false
     
     init(
         title: String,
@@ -289,17 +290,22 @@ struct CurrencyInputField: View {
     }
     
     var body: some View {
-        InputFieldView(
-            title: title,
-            subtitle: subtitle,
-            value: $stringValue,
-            placeholder: "0.00",
-            keyboardType: .decimalPad,
-            validation: isRequired ? .nonNegativeNumber : nil,
-            helpText: helpText,
-            isRequired: isRequired
-        )
+        TextField(title, text: $stringValue, onEditingChanged: { editing in
+            isEditing = editing
+            if !editing {
+                // Format the display when editing ends
+                if let val = value {
+                    stringValue = String(format: "%.2f", val)
+                }
+            }
+        })
+        .textFieldStyle(FinancialTextFieldStyle(
+            isEditing: isEditing,
+            hasError: false,
+            isFocused: isEditing
+        ))
         .onChange(of: stringValue) { _, newValue in
+            // Update the value without formatting during editing
             if let doubleValue = Double(newValue) {
                 value = doubleValue
             } else if newValue.isEmpty {
@@ -307,10 +313,13 @@ struct CurrencyInputField: View {
             }
         }
         .onChange(of: value) { _, newValue in
-            if let val = newValue {
-                stringValue = String(format: "%.2f", val)
-            } else if stringValue != "" {
-                stringValue = ""
+            // Only update string if not currently editing
+            if !isEditing {
+                if let val = newValue {
+                    stringValue = String(format: "%.2f", val)
+                } else if stringValue != "" {
+                    stringValue = ""
+                }
             }
         }
     }
@@ -325,6 +334,7 @@ struct PercentageInputField: View {
     let helpText: String?
     
     @State private var stringValue: String = ""
+    @State private var isEditing: Bool = false
     
     init(
         title: String,
@@ -347,16 +357,20 @@ struct PercentageInputField: View {
     
     var body: some View {
         HStack(spacing: 8) {
-            InputFieldView(
-                title: title,
-                subtitle: subtitle,
-                value: $stringValue,
-                placeholder: "0.000",
-                keyboardType: .decimalPad,
-                validation: isRequired ? .percentage : nil,
-                helpText: helpText,
-                isRequired: isRequired
-            )
+            TextField(title, text: $stringValue, onEditingChanged: { editing in
+                isEditing = editing
+                if !editing {
+                    // Format the display when editing ends
+                    if let val = value {
+                        stringValue = String(format: "%.3f", val)
+                    }
+                }
+            })
+            .textFieldStyle(FinancialTextFieldStyle(
+                isEditing: isEditing,
+                hasError: false,
+                isFocused: isEditing
+            ))
             
             Text("%")
                 .font(.system(.body, design: .monospaced))
@@ -364,6 +378,7 @@ struct PercentageInputField: View {
                 .padding(.top, subtitle != nil ? 24 : 0)
         }
         .onChange(of: stringValue) { _, newValue in
+            // Update the value without formatting during editing
             if let doubleValue = Double(newValue) {
                 value = doubleValue
             } else if newValue.isEmpty {
@@ -371,10 +386,13 @@ struct PercentageInputField: View {
             }
         }
         .onChange(of: value) { _, newValue in
-            if let val = newValue {
-                stringValue = String(format: "%.3f", val)
-            } else if stringValue != "" {
-                stringValue = ""
+            // Only update string if not currently editing
+            if !isEditing {
+                if let val = newValue {
+                    stringValue = String(format: "%.3f", val)
+                } else if stringValue != "" {
+                    stringValue = ""
+                }
             }
         }
     }
