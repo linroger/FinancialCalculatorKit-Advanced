@@ -6,41 +6,50 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A74BDCE32DF70C090027A66B /* ExpressionParser in Frameworks */ = {isa = PBXBuildFile; productRef = A74BDCE22DF70C090027A66B /* ExpressionParser */; };
+		A74BDCE62DF70C1F0027A66B /* MathParser in Frameworks */ = {isa = PBXBuildFile; productRef = A74BDCE52DF70C1F0027A66B /* MathParser */; };
+		A74BDCE92DF70C2D0027A66B /* ComplexModule in Frameworks */ = {isa = PBXBuildFile; productRef = A74BDCE82DF70C2D0027A66B /* ComplexModule */; };
+		A74BDCEB2DF70C2D0027A66B /* Numerics in Frameworks */ = {isa = PBXBuildFile; productRef = A74BDCEA2DF70C2D0027A66B /* Numerics */; };
+		A74BDCED2DF70C2D0027A66B /* RealModule in Frameworks */ = {isa = PBXBuildFile; productRef = A74BDCEC2DF70C2D0027A66B /* RealModule */; };
+		A74BDCF02DF70C5A0027A66B /* LaTeXSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = A74BDCEF2DF70C5A0027A66B /* LaTeXSwiftUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
-		A74BDBFC2DF6957B0027A66B /* PBXContainerItemProxy */ = {
+		A74BDC862DF70A760027A66B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = A74BDBE32DF6957A0027A66B /* Project object */;
+			containerPortal = A74BDC6D2DF70A740027A66B /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A74BDBEA2DF6957A0027A66B;
+			remoteGlobalIDString = A74BDC742DF70A740027A66B;
 			remoteInfo = FinancialCalculatorKit;
 		};
-		A74BDC062DF6957B0027A66B /* PBXContainerItemProxy */ = {
+		A74BDC902DF70A760027A66B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = A74BDBE32DF6957A0027A66B /* Project object */;
+			containerPortal = A74BDC6D2DF70A740027A66B /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A74BDBEA2DF6957A0027A66B;
+			remoteGlobalIDString = A74BDC742DF70A740027A66B;
 			remoteInfo = FinancialCalculatorKit;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A74BDBEB2DF6957A0027A66B /* FinancialCalculatorKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinancialCalculatorKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A74BDBFB2DF6957B0027A66B /* FinancialCalculatorKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinancialCalculatorKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A74BDC052DF6957B0027A66B /* FinancialCalculatorKitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinancialCalculatorKitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A74BDC752DF70A740027A66B /* FinancialCalculatorKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FinancialCalculatorKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A74BDC852DF70A760027A66B /* FinancialCalculatorKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinancialCalculatorKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A74BDC8F2DF70A760027A66B /* FinancialCalculatorKitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinancialCalculatorKitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A74BDBED2DF6957A0027A66B /* FinancialCalculatorKit */ = {
+		A74BDC772DF70A740027A66B /* FinancialCalculatorKit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FinancialCalculatorKit;
 			sourceTree = "<group>";
 		};
-		A74BDBFE2DF6957B0027A66B /* FinancialCalculatorKitTests */ = {
+		A74BDC882DF70A760027A66B /* FinancialCalculatorKitTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FinancialCalculatorKitTests;
 			sourceTree = "<group>";
 		};
-		A74BDC082DF6957B0027A66B /* FinancialCalculatorKitUITests */ = {
+		A74BDC922DF70A760027A66B /* FinancialCalculatorKitUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FinancialCalculatorKitUITests;
 			sourceTree = "<group>";
@@ -48,21 +57,27 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A74BDBE82DF6957A0027A66B /* Frameworks */ = {
+		A74BDC722DF70A740027A66B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A74BDCE32DF70C090027A66B /* ExpressionParser in Frameworks */,
+				A74BDCE92DF70C2D0027A66B /* ComplexModule in Frameworks */,
+				A74BDCEB2DF70C2D0027A66B /* Numerics in Frameworks */,
+				A74BDCED2DF70C2D0027A66B /* RealModule in Frameworks */,
+				A74BDCE62DF70C1F0027A66B /* MathParser in Frameworks */,
+				A74BDCF02DF70C5A0027A66B /* LaTeXSwiftUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A74BDC822DF70A760027A66B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A74BDBF82DF6957B0027A66B /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A74BDC022DF6957B0027A66B /* Frameworks */ = {
+		A74BDC8C2DF70A760027A66B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -72,22 +87,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A74BDBE22DF6957A0027A66B = {
+		A74BDC6C2DF70A740027A66B = {
 			isa = PBXGroup;
 			children = (
-				A74BDBED2DF6957A0027A66B /* FinancialCalculatorKit */,
-				A74BDBFE2DF6957B0027A66B /* FinancialCalculatorKitTests */,
-				A74BDC082DF6957B0027A66B /* FinancialCalculatorKitUITests */,
-				A74BDBEC2DF6957A0027A66B /* Products */,
+				A74BDC772DF70A740027A66B /* FinancialCalculatorKit */,
+				A74BDC882DF70A760027A66B /* FinancialCalculatorKitTests */,
+				A74BDC922DF70A760027A66B /* FinancialCalculatorKitUITests */,
+				A74BDC762DF70A740027A66B /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		A74BDBEC2DF6957A0027A66B /* Products */ = {
+		A74BDC762DF70A740027A66B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A74BDBEB2DF6957A0027A66B /* FinancialCalculatorKit.app */,
-				A74BDBFB2DF6957B0027A66B /* FinancialCalculatorKitTests.xctest */,
-				A74BDC052DF6957B0027A66B /* FinancialCalculatorKitUITests.xctest */,
+				A74BDC752DF70A740027A66B /* FinancialCalculatorKit.app */,
+				A74BDC852DF70A760027A66B /* FinancialCalculatorKitTests.xctest */,
+				A74BDC8F2DF70A760027A66B /* FinancialCalculatorKitUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,134 +110,146 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A74BDBEA2DF6957A0027A66B /* FinancialCalculatorKit */ = {
+		A74BDC742DF70A740027A66B /* FinancialCalculatorKit */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A74BDC0F2DF6957B0027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKit" */;
+			buildConfigurationList = A74BDC992DF70A760027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKit" */;
 			buildPhases = (
-				A74BDBE72DF6957A0027A66B /* Sources */,
-				A74BDBE82DF6957A0027A66B /* Frameworks */,
-				A74BDBE92DF6957A0027A66B /* Resources */,
+				A74BDC712DF70A740027A66B /* Sources */,
+				A74BDC722DF70A740027A66B /* Frameworks */,
+				A74BDC732DF70A740027A66B /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				A74BDBED2DF6957A0027A66B /* FinancialCalculatorKit */,
+				A74BDC772DF70A740027A66B /* FinancialCalculatorKit */,
 			);
 			name = FinancialCalculatorKit;
 			packageProductDependencies = (
+				A74BDCE22DF70C090027A66B /* ExpressionParser */,
+				A74BDCE52DF70C1F0027A66B /* MathParser */,
+				A74BDCE82DF70C2D0027A66B /* ComplexModule */,
+				A74BDCEA2DF70C2D0027A66B /* Numerics */,
+				A74BDCEC2DF70C2D0027A66B /* RealModule */,
+				A74BDCEF2DF70C5A0027A66B /* LaTeXSwiftUI */,
 			);
 			productName = FinancialCalculatorKit;
-			productReference = A74BDBEB2DF6957A0027A66B /* FinancialCalculatorKit.app */;
+			productReference = A74BDC752DF70A740027A66B /* FinancialCalculatorKit.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A74BDBFA2DF6957B0027A66B /* FinancialCalculatorKitTests */ = {
+		A74BDC842DF70A760027A66B /* FinancialCalculatorKitTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A74BDC122DF6957B0027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKitTests" */;
+			buildConfigurationList = A74BDC9C2DF70A760027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKitTests" */;
 			buildPhases = (
-				A74BDBF72DF6957B0027A66B /* Sources */,
-				A74BDBF82DF6957B0027A66B /* Frameworks */,
-				A74BDBF92DF6957B0027A66B /* Resources */,
+				A74BDC812DF70A760027A66B /* Sources */,
+				A74BDC822DF70A760027A66B /* Frameworks */,
+				A74BDC832DF70A760027A66B /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				A74BDBFD2DF6957B0027A66B /* PBXTargetDependency */,
+				A74BDC872DF70A760027A66B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				A74BDBFE2DF6957B0027A66B /* FinancialCalculatorKitTests */,
+				A74BDC882DF70A760027A66B /* FinancialCalculatorKitTests */,
 			);
 			name = FinancialCalculatorKitTests;
 			packageProductDependencies = (
 			);
 			productName = FinancialCalculatorKitTests;
-			productReference = A74BDBFB2DF6957B0027A66B /* FinancialCalculatorKitTests.xctest */;
+			productReference = A74BDC852DF70A760027A66B /* FinancialCalculatorKitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		A74BDC042DF6957B0027A66B /* FinancialCalculatorKitUITests */ = {
+		A74BDC8E2DF70A760027A66B /* FinancialCalculatorKitUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A74BDC152DF6957B0027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKitUITests" */;
+			buildConfigurationList = A74BDC9F2DF70A760027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKitUITests" */;
 			buildPhases = (
-				A74BDC012DF6957B0027A66B /* Sources */,
-				A74BDC022DF6957B0027A66B /* Frameworks */,
-				A74BDC032DF6957B0027A66B /* Resources */,
+				A74BDC8B2DF70A760027A66B /* Sources */,
+				A74BDC8C2DF70A760027A66B /* Frameworks */,
+				A74BDC8D2DF70A760027A66B /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				A74BDC072DF6957B0027A66B /* PBXTargetDependency */,
+				A74BDC912DF70A760027A66B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				A74BDC082DF6957B0027A66B /* FinancialCalculatorKitUITests */,
+				A74BDC922DF70A760027A66B /* FinancialCalculatorKitUITests */,
 			);
 			name = FinancialCalculatorKitUITests;
 			packageProductDependencies = (
 			);
 			productName = FinancialCalculatorKitUITests;
-			productReference = A74BDC052DF6957B0027A66B /* FinancialCalculatorKitUITests.xctest */;
+			productReference = A74BDC8F2DF70A760027A66B /* FinancialCalculatorKitUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		A74BDBE32DF6957A0027A66B /* Project object */ = {
+		A74BDC6D2DF70A740027A66B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
-					A74BDBEA2DF6957A0027A66B = {
+					A74BDC742DF70A740027A66B = {
 						CreatedOnToolsVersion = 16.4;
 					};
-					A74BDBFA2DF6957B0027A66B = {
+					A74BDC842DF70A760027A66B = {
 						CreatedOnToolsVersion = 16.4;
-						TestTargetID = A74BDBEA2DF6957A0027A66B;
+						TestTargetID = A74BDC742DF70A740027A66B;
 					};
-					A74BDC042DF6957B0027A66B = {
+					A74BDC8E2DF70A760027A66B = {
 						CreatedOnToolsVersion = 16.4;
-						TestTargetID = A74BDBEA2DF6957A0027A66B;
+						TestTargetID = A74BDC742DF70A740027A66B;
 					};
 				};
 			};
-			buildConfigurationList = A74BDBE62DF6957A0027A66B /* Build configuration list for PBXProject "FinancialCalculatorKit" */;
+			buildConfigurationList = A74BDC702DF70A740027A66B /* Build configuration list for PBXProject "FinancialCalculatorKit" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = A74BDBE22DF6957A0027A66B;
+			mainGroup = A74BDC6C2DF70A740027A66B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A74BDCE12DF70C090027A66B /* XCRemoteSwiftPackageReference "ExpressionParser" */,
+				A74BDCE42DF70C1F0027A66B /* XCRemoteSwiftPackageReference "swift-math-parser" */,
+				A74BDCE72DF70C2D0027A66B /* XCRemoteSwiftPackageReference "swift-numerics" */,
+				A74BDCEE2DF70C5A0027A66B /* XCRemoteSwiftPackageReference "LaTeXSwiftUI" */,
+			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = A74BDBEC2DF6957A0027A66B /* Products */;
+			productRefGroup = A74BDC762DF70A740027A66B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A74BDBEA2DF6957A0027A66B /* FinancialCalculatorKit */,
-				A74BDBFA2DF6957B0027A66B /* FinancialCalculatorKitTests */,
-				A74BDC042DF6957B0027A66B /* FinancialCalculatorKitUITests */,
+				A74BDC742DF70A740027A66B /* FinancialCalculatorKit */,
+				A74BDC842DF70A760027A66B /* FinancialCalculatorKitTests */,
+				A74BDC8E2DF70A760027A66B /* FinancialCalculatorKitUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A74BDBE92DF6957A0027A66B /* Resources */ = {
+		A74BDC732DF70A740027A66B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A74BDBF92DF6957B0027A66B /* Resources */ = {
+		A74BDC832DF70A760027A66B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A74BDC032DF6957B0027A66B /* Resources */ = {
+		A74BDC8D2DF70A760027A66B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -232,21 +259,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A74BDBE72DF6957A0027A66B /* Sources */ = {
+		A74BDC712DF70A740027A66B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A74BDBF72DF6957B0027A66B /* Sources */ = {
+		A74BDC812DF70A760027A66B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A74BDC012DF6957B0027A66B /* Sources */ = {
+		A74BDC8B2DF70A760027A66B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -256,20 +283,20 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		A74BDBFD2DF6957B0027A66B /* PBXTargetDependency */ = {
+		A74BDC872DF70A760027A66B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A74BDBEA2DF6957A0027A66B /* FinancialCalculatorKit */;
-			targetProxy = A74BDBFC2DF6957B0027A66B /* PBXContainerItemProxy */;
+			target = A74BDC742DF70A740027A66B /* FinancialCalculatorKit */;
+			targetProxy = A74BDC862DF70A760027A66B /* PBXContainerItemProxy */;
 		};
-		A74BDC072DF6957B0027A66B /* PBXTargetDependency */ = {
+		A74BDC912DF70A760027A66B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A74BDBEA2DF6957A0027A66B /* FinancialCalculatorKit */;
-			targetProxy = A74BDC062DF6957B0027A66B /* PBXContainerItemProxy */;
+			target = A74BDC742DF70A740027A66B /* FinancialCalculatorKit */;
+			targetProxy = A74BDC902DF70A760027A66B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		A74BDC0D2DF6957B0027A66B /* Debug */ = {
+		A74BDC972DF70A760027A66B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -323,15 +350,17 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
-		A74BDC0E2DF6957B0027A66B /* Release */ = {
+		A74BDC982DF70A760027A66B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -379,91 +408,71 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
 		};
-		A74BDC102DF6957B0027A66B /* Debug */ = {
+		A74BDC9A2DF70A760027A66B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FinancialCalculatorKit/FinancialCalculatorKit.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X8AD8YC886;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = linroger022.FinancialCalculatorKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Debug;
 		};
-		A74BDC112DF6957B0027A66B /* Release */ = {
+		A74BDC9B2DF70A760027A66B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FinancialCalculatorKit/FinancialCalculatorKit.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X8AD8YC886;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
-				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
-				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = linroger022.FinancialCalculatorKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Release;
 		};
-		A74BDC132DF6957B0027A66B /* Debug */ = {
+		A74BDC9D2DF70A760027A66B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -471,22 +480,17 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X8AD8YC886;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = linroger022.FinancialCalculatorKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FinancialCalculatorKit.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FinancialCalculatorKit";
-				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Debug;
 		};
-		A74BDC142DF6957B0027A66B /* Release */ = {
+		A74BDC9E2DF70A760027A66B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -494,105 +498,156 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X8AD8YC886;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = linroger022.FinancialCalculatorKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FinancialCalculatorKit.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FinancialCalculatorKit";
-				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Release;
 		};
-		A74BDC162DF6957B0027A66B /* Debug */ = {
+		A74BDCA02DF70A760027A66B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X8AD8YC886;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = linroger022.FinancialCalculatorKitUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_TARGET_NAME = FinancialCalculatorKit;
-				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Debug;
 		};
-		A74BDC172DF6957B0027A66B /* Release */ = {
+		A74BDCA12DF70A760027A66B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = X8AD8YC886;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = linroger022.FinancialCalculatorKitUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_TARGET_NAME = FinancialCalculatorKit;
-				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A74BDBE62DF6957A0027A66B /* Build configuration list for PBXProject "FinancialCalculatorKit" */ = {
+		A74BDC702DF70A740027A66B /* Build configuration list for PBXProject "FinancialCalculatorKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A74BDC0D2DF6957B0027A66B /* Debug */,
-				A74BDC0E2DF6957B0027A66B /* Release */,
+				A74BDC972DF70A760027A66B /* Debug */,
+				A74BDC982DF70A760027A66B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A74BDC0F2DF6957B0027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKit" */ = {
+		A74BDC992DF70A760027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A74BDC102DF6957B0027A66B /* Debug */,
-				A74BDC112DF6957B0027A66B /* Release */,
+				A74BDC9A2DF70A760027A66B /* Debug */,
+				A74BDC9B2DF70A760027A66B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A74BDC122DF6957B0027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKitTests" */ = {
+		A74BDC9C2DF70A760027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKitTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A74BDC132DF6957B0027A66B /* Debug */,
-				A74BDC142DF6957B0027A66B /* Release */,
+				A74BDC9D2DF70A760027A66B /* Debug */,
+				A74BDC9E2DF70A760027A66B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A74BDC152DF6957B0027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKitUITests" */ = {
+		A74BDC9F2DF70A760027A66B /* Build configuration list for PBXNativeTarget "FinancialCalculatorKitUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A74BDC162DF6957B0027A66B /* Debug */,
-				A74BDC172DF6957B0027A66B /* Release */,
+				A74BDCA02DF70A760027A66B /* Debug */,
+				A74BDCA12DF70A760027A66B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A74BDCE12DF70C090027A66B /* XCRemoteSwiftPackageReference "ExpressionParser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mgriebling/ExpressionParser";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.1;
+			};
+		};
+		A74BDCE42DF70C1F0027A66B /* XCRemoteSwiftPackageReference "swift-math-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/bradhowes/swift-math-parser";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.7.3;
+			};
+		};
+		A74BDCE72DF70C2D0027A66B /* XCRemoteSwiftPackageReference "swift-numerics" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-numerics.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.3;
+			};
+		};
+		A74BDCEE2DF70C5A0027A66B /* XCRemoteSwiftPackageReference "LaTeXSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/colinc86/LaTeXSwiftUI";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A74BDCE22DF70C090027A66B /* ExpressionParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A74BDCE12DF70C090027A66B /* XCRemoteSwiftPackageReference "ExpressionParser" */;
+			productName = ExpressionParser;
+		};
+		A74BDCE52DF70C1F0027A66B /* MathParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A74BDCE42DF70C1F0027A66B /* XCRemoteSwiftPackageReference "swift-math-parser" */;
+			productName = MathParser;
+		};
+		A74BDCE82DF70C2D0027A66B /* ComplexModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A74BDCE72DF70C2D0027A66B /* XCRemoteSwiftPackageReference "swift-numerics" */;
+			productName = ComplexModule;
+		};
+		A74BDCEA2DF70C2D0027A66B /* Numerics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A74BDCE72DF70C2D0027A66B /* XCRemoteSwiftPackageReference "swift-numerics" */;
+			productName = Numerics;
+		};
+		A74BDCEC2DF70C2D0027A66B /* RealModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A74BDCE72DF70C2D0027A66B /* XCRemoteSwiftPackageReference "swift-numerics" */;
+			productName = RealModule;
+		};
+		A74BDCEF2DF70C5A0027A66B /* LaTeXSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A74BDCEE2DF70C5A0027A66B /* XCRemoteSwiftPackageReference "LaTeXSwiftUI" */;
+			productName = LaTeXSwiftUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = A74BDBE32DF6957A0027A66B /* Project object */;
+	rootObject = A74BDC6D2DF70A740027A66B /* Project object */;
 }
