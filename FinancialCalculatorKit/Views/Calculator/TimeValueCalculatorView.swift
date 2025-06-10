@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import LaTeXSwiftUI
 
 /// Fully functional Time Value of Money calculator interface
 struct TimeValueCalculatorView: View {
@@ -230,7 +231,7 @@ struct TimeValueCalculatorView: View {
     @ViewBuilder
     private var placeholderResultView: some View {
         VStack(spacing: 16) {
-            Image(systemName: "calculator")
+            Image(systemName: "function")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary.opacity(0.6))
             
@@ -409,8 +410,8 @@ struct FormulaReferenceView: View {
                         .font(.body)
                         .foregroundColor(.secondary)
                     
-                    Text(formulaText)
-                        .font(.system(.callout, design: .monospaced))
+                    LaTeX(formulaText)
+                        .frame(height: 50)
                         .padding(12)
                         .background(
                             RoundedRectangle(cornerRadius: 6)
@@ -473,15 +474,15 @@ struct FormulaReferenceView: View {
     private var formulaText: String {
         switch solveFor {
         case .presentValue:
-            return "PV = FV / (1 + r)^n + PMT × [(1 - (1 + r)^-n) / r]"
+            return "$$PV = \\frac{FV}{(1 + r)^n} + PMT \\times \\frac{1 - (1 + r)^{-n}}{r}$$"
         case .futureValue:
-            return "FV = PV × (1 + r)^n + PMT × [((1 + r)^n - 1) / r]"
+            return "$$FV = PV \\times (1 + r)^n + PMT \\times \\frac{(1 + r)^n - 1}{r}$$"
         case .payment:
-            return "PMT = (PV × r) / (1 - (1 + r)^-n)"
+            return "$$PMT = \\frac{PV \\times r}{1 - (1 + r)^{-n}}$$"
         case .interestRate:
-            return "Solved using iterative methods (Newton-Raphson)"
+            return "$$r = \\text{Solved using iterative methods (Newton-Raphson)}$$"
         case .numberOfYears:
-            return "n = ln(FV/PV) / ln(1 + r)"
+            return "$$n = \\frac{\\ln(FV/PV)}{\\ln(1 + r)}$$"
         }
     }
     

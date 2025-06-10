@@ -15,8 +15,7 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            SidebarView()
-                .environment(viewModel)
+            SidebarView(viewModel: viewModel)
         } detail: {
             DetailView()
                 .environment(viewModel)
@@ -27,8 +26,7 @@ struct ContentView: View {
                 .environment(viewModel)
         }
         .sheet(isPresented: $viewModel.showingPreferencesSheet) {
-            PreferencesView()
-                .environment(viewModel)
+            PreferencesView(viewModel: viewModel)
         }
         .sheet(isPresented: $viewModel.showingHelpSheet) {
             HelpView()
@@ -52,12 +50,12 @@ struct ContentView: View {
 }
 
 struct SidebarView: View {
-    @Environment(MainViewModel.self) private var viewModel
+    @Bindable var viewModel: MainViewModel
     @Environment(\.modelContext) private var modelContext
     @Query private var calculations: [FinancialCalculation]
     
     var body: some View {
-        List(selection: .constant(viewModel.selectedCalculationType)) {
+        List(selection: $viewModel.selectedCalculationType) {
             Section("Calculators") {
                 ForEach(CalculationType.allCases) { type in
                     NavigationLink(value: type) {
@@ -77,7 +75,7 @@ struct SidebarView: View {
         }
         .navigationTitle("Financial Calculator")
         .navigationSplitViewColumnWidth(min: 280, ideal: 320)
-        .searchable(text: .constant(viewModel.searchText), prompt: "Search calculations...")
+        .searchable(text: $viewModel.searchText, prompt: "Search calculations...")
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button(action: { viewModel.showFavoritesOnly.toggle() }) {
@@ -279,14 +277,14 @@ struct CalculationSheetView: View {
 }
 
 struct PreferencesView: View {
-    @Environment(MainViewModel.self) private var viewModel
+    @Bindable var viewModel: MainViewModel
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationStack {
             Form {
                 Section("Currency") {
-                    Picker("Default Currency", selection: .constant(viewModel.userPreferences.defaultCurrency)) {
+                    Picker("Default Currency", selection: $viewModel.userPreferences.defaultCurrency) {
                         ForEach(Currency.allCases) { currency in
                             Text("\(currency.displayName) (\(currency.symbol))")
                                 .tag(currency)
@@ -296,19 +294,19 @@ struct PreferencesView: View {
                 
                 Section("Formatting") {
                     Stepper("Decimal Places: \(viewModel.userPreferences.decimalPlaces)", 
-                           value: .constant(viewModel.userPreferences.decimalPlaces), 
+                           value: $viewModel.userPreferences.decimalPlaces, 
                            in: 0...6)
                     
                     Toggle("Use Thousands Separator", 
-                           isOn: .constant(viewModel.userPreferences.useThousandsSeparator))
+                           isOn: $viewModel.userPreferences.useThousandsSeparator)
                 }
                 
                 Section("Interface") {
                     Toggle("Show Tooltips", 
-                           isOn: .constant(viewModel.userPreferences.showTooltips))
+                           isOn: $viewModel.userPreferences.showTooltips)
                     
                     Toggle("Auto-save Calculations", 
-                           isOn: .constant(viewModel.userPreferences.autoSaveCalculations))
+                           isOn: $viewModel.userPreferences.autoSaveCalculations)
                 }
             }
             .navigationTitle("Preferences")
