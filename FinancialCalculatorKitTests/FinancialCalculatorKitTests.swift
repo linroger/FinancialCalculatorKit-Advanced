@@ -2,10 +2,11 @@
 //  FinancialCalculatorKitTests.swift
 //  FinancialCalculatorKitTests
 //
-//  Created by Roger Lin on 6/8/25.
+//  Created by Roger Lin on 6/9/25.
 //
 
 import Testing
+@testable import FinancialCalculatorKit
 
 struct FinancialCalculatorKitTests {
 
