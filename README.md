@@ -1,102 +1,153 @@
 # FinancialCalculatorKit
 
-A comprehensive, feature-rich financial calculator app for macOS built with SwiftUI and SwiftCharts.
+A comprehensive, feature-rich financial calculator app for macOS built with SwiftUI and SwiftCharts. This advanced financial toolkit combines professional-grade calculations with an intuitive native macOS interface, perfect for CFA candidates, finance professionals, and students.
 
 ## Features
 
 ### Core Financial Calculations
 - **Time Value of Money (TVM)**
-  - Present Value (PV)
-  - Future Value (FV) 
-  - Payment (PMT)
-  - Interest Rate (I/Y)
-  - Number of Periods (N)
+  - Present Value (PV) and Future Value (FV) calculations
+  - Payment (PMT) and Interest Rate solving
+  - Number of periods calculation
+  - Support for ordinary and due annuities
+  - LaTeX formula rendering for educational clarity
 
-- **Advanced Financial Functions**
-  - Net Present Value (NPV)
-  - Internal Rate of Return (IRR)
+- **Loan and Mortgage Calculations**
+  - Monthly payment calculation with amortization schedules
+  - Total interest calculations and principal vs interest breakdown
+  - Multiple payment frequency support (monthly, quarterly, annual)
+  - Interactive amortization charts
+
+- **Bond Calculations**
+  - Bond pricing and yield to maturity calculations
+  - Current yield, duration, and convexity analysis
+  - Accrued interest calculations
+  - Price sensitivity analysis
+
+- **Investment Analysis**
+  - Net Present Value (NPV) and Internal Rate of Return (IRR)
   - Modified Internal Rate of Return (MIRR)
-  - Bond pricing and yield calculations
-  - Depreciation calculations (Straight-line, Declining balance, MACRS)
-  - Loan amortization schedules
-  - Mortgage calculations
+  - Payback period and profitability index
+  - Cash flow analysis with interactive charts
 
-### Data Analysis & Visualization
-- **Charts and Graphs** (powered by SwiftCharts)
-  - Cash flow timelines
-  - Amortization schedules
-  - Investment growth projections
-  - Bond price sensitivity analysis
+- **Options Pricing**
+  - Black-Scholes model implementation
+  - Complete Greeks analysis (Delta, Gamma, Theta, Vega, Rho)
+  - Implied volatility calculations
+  - Risk analysis and scenario modeling
+  - Volatility surface visualization
 
-- **Data Tables**
-  - Sortable calculation results
-  - Amortization schedules
-  - Payment breakdowns
+- **Advanced Mathematical Functions**
+  - Expression parser and evaluator with financial functions
+  - Custom variable support and calculation history
+  - LaTeX rendering for complex mathematical formulas
+  - Statistical functions and analysis tools
 
-### Market Data Integration
-- **Stock Ticker History**
-  - Real-time and historical stock prices
-  - Financial metrics and ratios
-  - Price charts and analysis
+- **Market Data Integration**
+  - Stock ticker history charts using real-time data
+  - Currency conversion with live exchange rates
+  - Historical data visualization and analysis
+  - CSV import/export for custom datasets
 
-- **Currency & Unit Conversions**
-  - Real-time exchange rates
-  - Historical currency data
-  - Unit conversions for international calculations
+- **Depreciation Calculations**
+  - Straight-line depreciation
+  - Declining balance method
+  - MACRS depreciation schedules
+  - Custom depreciation scenarios
 
-### Data Management
-- **CSV Import/Export**
-  - Import calculation parameters
-  - Export results and schedules
-  - Batch calculations
-
-- **Calculation History**
-  - Save and organize calculations
-  - Quick access to previous results
-  - Calculation templates
-
-### User Experience
-- **Native macOS Design**
+### Technical Features
+- **Native macOS Experience**
+  - Built with SwiftUI for macOS 15+ with Apple Silicon optimization
   - Follows Apple Human Interface Guidelines
-  - Adaptive layout for different window sizes
-  - Keyboard shortcuts and accessibility support
+  - Three-column NavigationSplitView layout
+  - Full keyboard navigation and accessibility support
 
-- **Help & Education**
-  - Comprehensive tooltips and explanations
-  - Formula references
-  - Example calculations
-  - Built-in financial glossary
+- **Advanced UI/UX**
+  - Interactive Swift Charts visualizations
+  - LaTeX formula rendering with LaTeXSwiftUI
+  - Professional calculation result displays
+  - Context menus, drag-and-drop, and native shortcuts
+  - Dark/Light mode support with automatic switching
 
-## Requirements
+- **Data Management**
+  - SwiftData for robust local persistence
+  - Calculation history with favorites and search
+  - Export capabilities (CSV, Excel, PDF)
+  - Import/export for analysis and backup
 
-- macOS 15.0+
-- Xcode 16.0+
+- **Mathematical Excellence**
+  - Swift Numerics for high-precision calculations
+  - Math expression parser for complex formulas
+  - Custom financial function library
+  - Validated calculation engines with error handling
+
+## Technical Stack
+
+- **Framework**: SwiftUI for macOS 15+
+- **Data**: SwiftData with custom ValueTransformers
+- **Charts**: Swift Charts for data visualization
+- **Mathematics**: swift-numerics, swift-math-parser
+- **LaTeX**: LaTeXSwiftUI for formula rendering
+- **Architecture**: MVVM with @Observable framework
+- **Testing**: XCTest with UI testing support
+
+## Building and Running
+
+### Requirements
+- Xcode 16+
+- macOS 15+ (deployment target)
 - Swift 6.0+
 
-## Architecture
-
-The app follows MVVM architecture with:
-- **Models**: Core calculation engines and data models
-- **Views**: SwiftUI-based user interface
-- **ViewModels**: ObservableObject classes managing state and business logic
-- **Services**: Network, data persistence, and calculation services
-
-## Development
-
-### Building
+### Setup
 ```bash
+# Clone the repository
+git clone https://github.com/linroger/FinancialCalculatorKit-Advanced.git
+cd FinancialCalculatorKit-Advanced
+
 # Open in Xcode
 open FinancialCalculatorKit.xcodeproj
 
 # Or build from command line
-xcodebuild -project FinancialCalculatorKit.xcodeproj -scheme FinancialCalculatorKit build
+swift build
 ```
 
 ### Testing
 ```bash
-# Run tests
+# Run unit tests
+swift test
+
+# Run UI tests
 xcodebuild -project FinancialCalculatorKit.xcodeproj -scheme FinancialCalculatorKit test
 ```
+
+## Features in Detail
+
+### Calculator Types Available
+1. **Time Value of Money** - Complete TVM solver with LaTeX formulas
+2. **Loan Calculator** - Payment schedules and amortization analysis
+3. **Bond Calculator** - Pricing, yield, and sensitivity analysis
+4. **Investment Analysis** - NPV, IRR, and performance metrics
+5. **Options Calculator** - Black-Scholes with Greeks analysis
+6. **Math Expression** - Advanced expression evaluator
+7. **Depreciation** - Multiple depreciation methods
+8. **Currency Exchange** - Live rates and conversions
+9. **Unit Converter** - International unit conversions
+
+### Key Differentiators
+- **LaTeX Rendering**: Beautiful mathematical formulas for educational clarity
+- **Professional Interface**: Native macOS design with advanced navigation
+- **Comprehensive Coverage**: From basic TVM to advanced options pricing
+- **Data Persistence**: Save and organize calculation history
+- **Export Capabilities**: Professional reporting and data export
+- **Real-time Data**: Live market data integration
+
+## Contributing
+
+Pull requests are welcome! Please:
+1. Update `CHANGELOG.md` with your changes
+2. Follow SwiftUI and Swift 6 best practices
+3. Include tests for new functionality
+4. Maintain compatibility with macOS 15+
 
 ## License
 

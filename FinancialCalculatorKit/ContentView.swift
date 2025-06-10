@@ -210,6 +210,10 @@ struct DetailView: View {
                 CurrencyConverterView()
             case .conversion:
                 UnitConverterView()
+            case .futureValue:
+                FutureValueView()
+            case .tickerHistory:
+                TickerHistoryView()
             }
         }
         .navigationTitle(viewModel.selectedCalculationType.displayName)

@@ -19,6 +19,8 @@ enum CalculationType: String, CaseIterable, Identifiable {
     case depreciation = "depreciation"
     case currency = "currency"
     case conversion = "conversion"
+    case futureValue = "futureValue"
+    case tickerHistory = "tickerHistory"
     
     var id: String { rawValue }
     
@@ -44,6 +46,10 @@ enum CalculationType: String, CaseIterable, Identifiable {
             return "Currency Exchange"
         case .conversion:
             return "Unit Conversion"
+        case .futureValue:
+            return "Future Value Calculator"
+        case .tickerHistory:
+            return "Ticker History"
         }
     }
     
@@ -69,6 +75,10 @@ enum CalculationType: String, CaseIterable, Identifiable {
             return "Real-time currency exchange rates and conversions"
         case .conversion:
             return "Unit conversions for international calculations"
+        case .futureValue:
+            return "Interactive future value calculator with charts and CSV export"
+        case .tickerHistory:
+            return "Stock ticker history charts with real-time market data"
         }
     }
     
@@ -94,6 +104,10 @@ enum CalculationType: String, CaseIterable, Identifiable {
             return "dollarsign.circle"
         case .conversion:
             return "arrow.left.arrow.right"
+        case .futureValue:
+            return "chart.line.uptrend.xyaxis"
+        case .tickerHistory:
+            return "chart.xyaxis.line"
         }
     }
 }
