@@ -1,0 +1,25 @@
+✅ ERRORS FOUND - DETAILS
+
+PRIMARY ERROR FILE:
+DepreciationCalculatorView.swift, Line 815
+
+ERROR CLUSTER (all on same line):
+1. generic parameter 'RowData' could not be inferred
+2. missing argument label 'id:' in call
+3. missing arguments for parameters: width, content, searchableText, compare
+4. generic parameter 'Content' could not be inferred
+5. trailing closure passed to parameter of type 'String'
+6. Line 818: cannot call value of non-function type 'CGFloat'
+
+PATTERN:
+This looks like a Table() or similar SwiftUI component being called with incorrect parameters.
+
+NEXT STEPS:
+1. Read DepreciationCalculatorView.swift lines 810-820 to see what's being called
+2. Check the correct API signature for the component being used
+3. Fix the parameters and closure to match the API
+4. Rebuild to identify remaining errors
+
+MORE ERRORS LIKELY EXIST:
+The build failed with 3 compilation failures, so there are more errors in other files.
+Must fix these first, then rebuild to find others.

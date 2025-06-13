@@ -1,0 +1,43 @@
+🚨 INCORRECT FIX APPLIED - BUILD WILL STILL FAIL
+
+WHAT THE AGENT DID:
+Changed:
+  .width(60)
+To:
+  .width(min: 60, ideal: 60, max: 60)
+
+PROBLEM:
+The `.width(min:ideal:max:)` API DOES NOT EXIST on TableColumn. The agent invented this API.
+
+This is a HALLUCINATION - the agent guessed at an API that doesn't exist.
+
+THE REAL ISSUE:
+SwiftUI's TableColumn does NOT have a .width() modifier at all in the current API.
+
+CORRECT SOLUTIONS:
+Option 1 - Remove width constraints (simplest):
+  TableColumn("Year") { entry in
+      Text("\(entry.year)")
+  }
+
+Option 2 - Use frame on content:
+  TableColumn("Year") { entry in
+      Text("\(entry.year)")
+          .frame(width: 60)
+  }
+
+Option 3 - Use frame with min/ideal/max:
+  TableColumn("Year") { entry in
+      Text("\(entry.year)")
+          .frame(minWidth: 60, idealWidth: 60, maxWidth: 60)
+  }
+
+NEXT BUILD WILL STILL FAIL because .width(min:ideal:max:) is not valid.
+
+ACTION REQUIRED:
+1. Undo this change
+2. Use Option 1 (remove .width() entirely) or Option 3 (use .frame())
+3. Rebuild to test
+
+CRITICAL:
+Do NOT assume SwiftUI APIs exist. The guessed API will cause compilation failure.

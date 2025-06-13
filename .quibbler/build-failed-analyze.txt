@@ -1,0 +1,32 @@
+🚨 BUILD FAILED - ANALYZE ERRORS
+
+STATUS: Build attempted but failed with 3 compilation failures
+
+ISSUE WITH CURRENT OUTPUT:
+The tail -100 output only shows:
+- Build failed message
+- Failed command list (without error details)
+- Does NOT show the actual error messages
+
+BUILD LOG LOCATION:
+Full output saved to: build_output_new.log
+
+REQUIREMENT:
+Agent must search the new build log for actual error messages:
+1. grep "error:" build_output_new.log | head -30
+2. Identify which files have compilation errors
+3. Read those specific error messages
+4. Fix the errors
+5. Rebuild
+
+The errors are in the log but not visible in the tail output shown.
+
+DO NOT assume the build was successful. The failures shown are:
+- DepreciationCalculatorView.swift
+- DocumentListView.swift
+- EquityValuationView.swift
+- FixedIncomeAnalyticsView.swift
+- FormulaLibraryView.swift
+- ForwardsCalculatorView.swift
+
+And possibly others. Must examine the full error output.

@@ -1,0 +1,28 @@
+✅ AmortizationEntry FOUND
+
+LOCATION: FinancialCalculatorKit/Models/Calculation/LoanCalculation.swift:732
+
+CONFIRMED PROPERTIES:
+struct AmortizationEntry: Identifiable {
+    let id = UUID()
+    let paymentNumber: Int          ← NOT "period"
+    let payment: Double             ← NOT "totalPayment"
+    let principalPayment: Double    ✓
+    let interestPayment: Double     ✓
+    [MORE PROPERTIES BELOW - NEED FULL READ]
+}
+
+ERRORS IN InteractiveFinancialCharts.swift:
+Line 96:   entry.period              → FIX TO: entry.paymentNumber
+Line 156:  entry.period              → FIX TO: entry.paymentNumber
+Line 201:  entry.period              → FIX TO: entry.paymentNumber
+Line 278:  entry.period              → FIX TO: entry.paymentNumber
+Line 696:  period: parameter          → FIX TO: paymentNumber:
+Line 696:  totalPayment: parameter    → FIX TO: payment:
+
+NEXT ACTION REQUIRED:
+1. Read the FULL AmortizationEntry struct definition (all properties)
+2. Fix all references in InteractiveFinancialCharts.swift
+3. Verify parameter names in any constructor calls
+
+DO NOT assume properties beyond what's listed. Read the complete model definition.

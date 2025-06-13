@@ -1,0 +1,28 @@
+🚨 URGENT - READ THIS FIRST BEFORE BUILDING! 🚨
+
+DO NOT RUN xcodebuild YET!
+
+Two REAL compilation errors were just discovered and verified:
+
+1. ❌ YieldCurvePoint at line 382 - Missing 4 required parameters
+2. ❌ MetricCard at lines 1088-1100, 1648-1660+ - Missing color parameter (4+ instances)
+
+These are NOT false positives. They were verified by reading actual struct definitions.
+
+BUILD WILL FAIL without these fixes!
+
+IMMEDIATE ACTIONS:
+1. Read: CRITICAL_INTERVENTION_5_URGENT.md (in this folder)
+2. Read: NEXT_STEPS_FOR_AGENT.md (in this folder)
+3. Apply the fixes described there
+4. THEN run xcodebuild
+
+FILES TO READ (in .quibbler/ folder):
+- CRITICAL_INTERVENTION_5_URGENT.md (what's wrong and why)
+- NEXT_STEPS_FOR_AGENT.md (how to fix)
+- VERIFIED_COMPILATION_ERRORS.md (detailed evidence)
+
+Time spent: ~5 minutes to read and understand
+Time saved: Many failed build attempts
+
+PLEASE READ BEFORE PROCEEDING!

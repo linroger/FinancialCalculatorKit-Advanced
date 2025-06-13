@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:FinancialCalculatorKit-5.0-updated-accent-colors}",
+            "name": "Debug FinancialCalculatorKit",
+            "program": "${workspaceFolder:FinancialCalculatorKit-5.0-updated-accent-colors}/.build/debug/FinancialCalculatorKit",
+            "preLaunchTask": "swift: Build Debug FinancialCalculatorKit"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:FinancialCalculatorKit-5.0-updated-accent-colors}",
+            "name": "Release FinancialCalculatorKit",
+            "program": "${workspaceFolder:FinancialCalculatorKit-5.0-updated-accent-colors}/.build/release/FinancialCalculatorKit",
+            "preLaunchTask": "swift: Build Release FinancialCalculatorKit"
+        }
+    ]
+}
