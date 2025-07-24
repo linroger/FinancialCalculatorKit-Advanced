@@ -13,32 +13,42 @@ import SwiftData
 final class InvestmentCalculation {
     // MARK: - Common Properties
     var id: UUID
-    var name: String
-    private var calculationTypeRawValue: String = CalculationType.investment.rawValue
-    var createdDate: Date
-    var lastModified: Date
-    var notes: String
-    var isFavorite: Bool
-    private var currencyRawValue: String
+    var metadata: CalculationMetadata
     
-    /// Computed property for calculationType
-    var calculationType: CalculationType {
-        get {
-            CalculationType(rawValue: calculationTypeRawValue) ?? .investment
-        }
-        set {
-            calculationTypeRawValue = newValue.rawValue
-        }
+    // MARK: - Computed Properties for Backward Compatibility
+    var name: String {
+        get { metadata.name }
+        set { metadata.name = newValue }
     }
     
-    /// Computed property for currency
     var currency: Currency {
-        get {
-            Currency(rawValue: currencyRawValue) ?? .usd
-        }
-        set {
-            currencyRawValue = newValue.rawValue
-        }
+        get { metadata.currency }
+        set { metadata.currency = newValue }
+    }
+    
+    var calculationType: CalculationType {
+        get { metadata.calculationType }
+        set { metadata.calculationType = newValue }
+    }
+    
+    var createdDate: Date {
+        get { metadata.createdDate }
+        set { metadata.createdDate = newValue }
+    }
+    
+    var lastModified: Date {
+        get { metadata.lastModified }
+        set { metadata.lastModified = newValue }
+    }
+    
+    var notes: String {
+        get { metadata.notes }
+        set { metadata.notes = newValue }
+    }
+    
+    var isFavorite: Bool {
+        get { metadata.isFavorite }
+        set { metadata.isFavorite = newValue }
     }
     
     // MARK: - Investment Specific Properties
@@ -85,12 +95,11 @@ final class InvestmentCalculation {
         currency: Currency = .usd
     ) {
         self.id = UUID()
-        self.name = name
-        self.createdDate = Date()
-        self.lastModified = Date()
-        self.notes = ""
-        self.isFavorite = false
-        self.currencyRawValue = currency.rawValue
+        self.metadata = CalculationMetadata(
+            name: name,
+            calculationType: .investment,
+            currency: currency
+        )
         
         self.initialInvestment = initialInvestment
         self.cashFlows = cashFlows
@@ -102,13 +111,12 @@ final class InvestmentCalculation {
     
     /// Update the last modified timestamp
     func updateTimestamp() {
-        lastModified = Date()
+        metadata.updateTimestamp()
     }
     
     /// Toggle favorite status
     func toggleFavorite() {
-        isFavorite.toggle()
-        updateTimestamp()
+        metadata.toggleFavorite()
     }
     
     var result: CalculationResult {
@@ -254,11 +262,11 @@ final class InvestmentCalculation {
         let formattedValue: String
         switch analysisType {
         case .npv:
-            formattedValue = currency.formatValue(calculatedValue)
+            formattedValue = metadata.currency.formatValue(calculatedValue)
         case .irr, .advancedIRR, .mirr, .blendedIRR:
             formattedValue = String(format: "%.3f%%", calculatedValue)
         case .both:
-            formattedValue = currency.formatValue(calculatedValue)
+            formattedValue = metadata.currency.formatValue(calculatedValue)
         }
         
         return CalculationResult(
@@ -271,7 +279,7 @@ final class InvestmentCalculation {
     }
     
     var isValid: Bool {
-        guard !name.isEmpty else { return false }
+        guard !metadata.name.isEmpty else { return false }
         
         return initialInvestment != 0 &&
                !cashFlows.isEmpty &&
@@ -281,7 +289,7 @@ final class InvestmentCalculation {
     var validationErrors: [String] {
         var errors: [String] = []
         
-        if name.isEmpty {
+        if metadata.name.isEmpty {
             errors.append("Name is required")
         }
         

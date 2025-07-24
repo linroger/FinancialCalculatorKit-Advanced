@@ -13,32 +13,36 @@ import SwiftData
 final class DepreciationCalculation {
     // MARK: - Common Properties
     var id: UUID
-    var name: String
-    private var calculationTypeRawValue: String = CalculationType.depreciation.rawValue
-    var createdDate: Date
-    var lastModified: Date
-    var notes: String
-    var isFavorite: Bool
-    private var currencyRawValue: String
+    var metadata: CalculationMetadata
     
-    /// Computed property for calculationType
-    var calculationType: CalculationType {
-        get {
-            CalculationType(rawValue: calculationTypeRawValue) ?? .depreciation
-        }
-        set {
-            calculationTypeRawValue = newValue.rawValue
-        }
+    // MARK: - Computed Properties for Common Metadata
+    var name: String {
+        get { metadata.name }
+        set { metadata.name = newValue }
     }
-    
-    /// Computed property for currency
+    var calculationType: CalculationType {
+        get { metadata.calculationType }
+        set { metadata.calculationType = newValue }
+    }
+    var createdDate: Date {
+        get { metadata.createdDate }
+        set { metadata.createdDate = newValue }
+    }
+    var lastModified: Date {
+        get { metadata.lastModified }
+        set { metadata.lastModified = newValue }
+    }
+    var notes: String {
+        get { metadata.notes }
+        set { metadata.notes = newValue }
+    }
+    var isFavorite: Bool {
+        get { metadata.isFavorite }
+        set { metadata.isFavorite = newValue }
+    }
     var currency: Currency {
-        get {
-            Currency(rawValue: currencyRawValue) ?? .usd
-        }
-        set {
-            currencyRawValue = newValue.rawValue
-        }
+        get { metadata.currency }
+        set { metadata.currency = newValue }
     }
     
     // MARK: - Depreciation Specific Properties
@@ -95,12 +99,11 @@ final class DepreciationCalculation {
         currency: Currency = .usd
     ) {
         self.id = UUID()
-        self.name = name
-        self.createdDate = Date()
-        self.lastModified = Date()
-        self.notes = ""
-        self.isFavorite = false
-        self.currencyRawValue = currency.rawValue
+        self.metadata = CalculationMetadata(
+            name: name,
+            calculationType: .depreciation,
+            currency: currency
+        )
         
         self.assetCost = assetCost
         self.salvageValue = salvageValue
@@ -114,13 +117,12 @@ final class DepreciationCalculation {
     
     /// Update the last modified timestamp
     func updateTimestamp() {
-        lastModified = Date()
+        metadata.updateTimestamp()
     }
     
     /// Toggle favorite status
     func toggleFavorite() {
-        isFavorite.toggle()
-        updateTimestamp()
+        metadata.toggleFavorite()
     }
     
     var result: CalculationResult {

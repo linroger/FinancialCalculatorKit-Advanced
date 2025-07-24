@@ -13,33 +13,7 @@ import SwiftData
 final class BondCalculation {
     // MARK: - Common Properties
     var id: UUID
-    var name: String
-    private var calculationTypeRawValue: String = CalculationType.bond.rawValue
-    var createdDate: Date
-    var lastModified: Date
-    var notes: String
-    var isFavorite: Bool
-    private var currencyRawValue: String
-    
-    /// Computed property for calculationType
-    var calculationType: CalculationType {
-        get {
-            CalculationType(rawValue: calculationTypeRawValue) ?? .bond
-        }
-        set {
-            calculationTypeRawValue = newValue.rawValue
-        }
-    }
-    
-    /// Computed property for currency
-    var currency: Currency {
-        get {
-            Currency(rawValue: currencyRawValue) ?? .usd
-        }
-        set {
-            currencyRawValue = newValue.rawValue
-        }
-    }
+    var metadata: CalculationMetadata
     
     // MARK: - Bond Specific Properties
     /// Face value (par value) of the bond
@@ -157,12 +131,11 @@ final class BondCalculation {
         yieldCurveData: YieldCurveData
     ) {
         self.id = UUID()
-        self.name = "New Bond Calculation"
-        self.createdDate = Date()
-        self.lastModified = Date()
-        self.notes = ""
-        self.isFavorite = false
-        self.currencyRawValue = currency.rawValue
+        self.metadata = CalculationMetadata(
+            name: "New Bond Calculation",
+            calculationType: .bond,
+            currency: currency
+        )
         
         self.faceValue = faceValue
         self.couponRate = couponRate
@@ -191,13 +164,12 @@ final class BondCalculation {
     
     /// Update the last modified timestamp
     func updateTimestamp() {
-        lastModified = Date()
+        metadata.updateTimestamp()
     }
     
     /// Toggle favorite status
     func toggleFavorite() {
-        isFavorite.toggle()
-        updateTimestamp()
+        metadata.toggleFavorite()
     }
     
     var result: CalculationResult {

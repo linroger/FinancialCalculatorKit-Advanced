@@ -13,33 +13,7 @@ import SwiftData
 final class TimeValueCalculation {
     // MARK: - Common Properties
     var id: UUID
-    var name: String
-    private var calculationTypeRawValue: String = CalculationType.timeValue.rawValue
-    var createdDate: Date
-    var lastModified: Date
-    var notes: String
-    var isFavorite: Bool
-    private var currencyRawValue: String
-    
-    /// Computed property for calculationType
-    var calculationType: CalculationType {
-        get {
-            CalculationType(rawValue: calculationTypeRawValue) ?? .timeValue
-        }
-        set {
-            calculationTypeRawValue = newValue.rawValue
-        }
-    }
-    
-    /// Computed property for currency
-    var currency: Currency {
-        get {
-            Currency(rawValue: currencyRawValue) ?? .usd
-        }
-        set {
-            currencyRawValue = newValue.rawValue
-        }
-    }
+    var metadata: CalculationMetadata
     
     // MARK: - Time Value Specific Properties
     /// Present Value
@@ -94,12 +68,11 @@ final class TimeValueCalculation {
         currency: Currency = .usd
     ) {
         self.id = UUID()
-        self.name = name
-        self.createdDate = Date()
-        self.lastModified = Date()
-        self.notes = ""
-        self.isFavorite = false
-        self.currencyRawValue = currency.rawValue
+        self.metadata = CalculationMetadata(
+            name: name,
+            calculationType: .timeValue,
+            currency: currency
+        )
         
         self.paymentFrequencyRawValue = paymentFrequency.rawValue
         self.paymentsAtBeginning = paymentsAtBeginning
@@ -110,13 +83,12 @@ final class TimeValueCalculation {
     
     /// Update the last modified timestamp
     func updateTimestamp() {
-        lastModified = Date()
+        metadata.updateTimestamp()
     }
     
     /// Toggle favorite status
     func toggleFavorite() {
-        isFavorite.toggle()
-        updateTimestamp()
+        metadata.toggleFavorite()
     }
     
     var result: CalculationResult {
@@ -129,7 +101,7 @@ final class TimeValueCalculation {
         }
         
         let calculatedValue = calculateSolveForValue()
-        let formattedValue = currency.formatValue(calculatedValue)
+        let formattedValue = metadata.currency.formatValue(calculatedValue)
         
         var secondaryValues: [String: Double] = [:]
         var explanation = ""
@@ -184,7 +156,7 @@ final class TimeValueCalculation {
     }
     
     var isValid: Bool {
-        guard !name.isEmpty else { return false }
+        guard !metadata.name.isEmpty else { return false }
         
         // Check that we have enough inputs to solve
         let inputCount = [presentValue, futureValue, payment, annualInterestRate, numberOfYears].compactMap { $0 }.count
@@ -204,7 +176,7 @@ final class TimeValueCalculation {
     var validationErrors: [String] {
         var errors: [String] = []
         
-        if name.isEmpty {
+        if metadata.name.isEmpty {
             errors.append("Name is required")
         }
         

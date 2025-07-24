@@ -13,33 +13,7 @@ import SwiftData
 final class LoanCalculation {
     // MARK: - Common Properties
     var id: UUID
-    var name: String
-    private var calculationTypeRawValue: String
-    var createdDate: Date
-    var lastModified: Date
-    var notes: String
-    var isFavorite: Bool
-    private var currencyRawValue: String
-    
-    /// Computed property for calculationType
-    var calculationType: CalculationType {
-        get {
-            CalculationType(rawValue: calculationTypeRawValue) ?? .loan
-        }
-        set {
-            calculationTypeRawValue = newValue.rawValue
-        }
-    }
-    
-    /// Computed property for currency
-    var currency: Currency {
-        get {
-            Currency(rawValue: currencyRawValue) ?? .usd
-        }
-        set {
-            currencyRawValue = newValue.rawValue
-        }
-    }
+    var metadata: CalculationMetadata
     
     // MARK: - Loan Specific Properties
     /// Principal loan amount
@@ -95,13 +69,12 @@ final class LoanCalculation {
         currency: Currency = .usd
     ) {
         self.id = UUID()
-        self.name = name
-        self.calculationTypeRawValue = (loanType == .mortgage ? CalculationType.mortgage : CalculationType.loan).rawValue
-        self.createdDate = Date()
-        self.lastModified = Date()
-        self.notes = ""
-        self.isFavorite = false
-        self.currencyRawValue = currency.rawValue
+        let calculationType = loanType == .mortgage ? CalculationType.mortgage : CalculationType.loan
+        self.metadata = CalculationMetadata(
+            name: name,
+            calculationType: calculationType,
+            currency: currency
+        )
         
         self.principalAmount = principalAmount
         self.annualInterestRate = annualInterestRate
@@ -116,13 +89,12 @@ final class LoanCalculation {
     
     /// Update the last modified timestamp
     func updateTimestamp() {
-        lastModified = Date()
+        metadata.updateTimestamp()
     }
     
     /// Toggle favorite status
     func toggleFavorite() {
-        isFavorite.toggle()
-        updateTimestamp()
+        metadata.toggleFavorite()
     }
     
     var result: CalculationResult {
@@ -139,7 +111,7 @@ final class LoanCalculation {
         let totalInterest = amortization.reduce(0) { $0 + $1.interestPayment }
         let totalPayments = amortization.reduce(0) { $0 + $1.payment }
         
-        let formattedPayment = currency.formatValue(monthlyPayment)
+        let formattedPayment = metadata.currency.formatValue(monthlyPayment)
         
         var secondaryValues: [String: Double] = [:]
         secondaryValues["Total Interest"] = totalInterest
@@ -179,7 +151,7 @@ final class LoanCalculation {
     }
     
     var isValid: Bool {
-        guard !name.isEmpty else { return false }
+        guard !metadata.name.isEmpty else { return false }
         
         return principalAmount > 0 &&
                annualInterestRate >= 0 &&
@@ -192,7 +164,7 @@ final class LoanCalculation {
     var validationErrors: [String] {
         var errors: [String] = []
         
-        if name.isEmpty {
+        if metadata.name.isEmpty {
             errors.append("Name is required")
         }
         
@@ -312,10 +284,10 @@ final class LoanCalculation {
         return amortization.map { entry in
             TableRow(values: [
                 "Payment #": "\(entry.paymentNumber)",
-                "Payment": currency.formatValue(entry.payment),
-                "Principal": currency.formatValue(entry.principalPayment),
-                "Interest": currency.formatValue(entry.interestPayment),
-                "Balance": currency.formatValue(entry.remainingBalance)
+                "Payment": metadata.currency.formatValue(entry.payment),
+                "Principal": metadata.currency.formatValue(entry.principalPayment),
+                "Interest": metadata.currency.formatValue(entry.interestPayment),
+                "Balance": metadata.currency.formatValue(entry.remainingBalance)
             ])
         }
     }

@@ -11,13 +11,16 @@ import SwiftData
 /// Protocol defining common behavior for financial calculations
 protocol FinancialCalculationProtocol {
     var id: UUID { get }
+    var metadata: CalculationMetadata { get set }
+    
+    // Computed properties for backward compatibility
     var name: String { get set }
-    var calculationType: CalculationType { get }
-    var createdDate: Date { get }
+    var currency: Currency { get set }
+    var calculationType: CalculationType { get set }
+    var createdDate: Date { get set }
     var lastModified: Date { get set }
     var notes: String { get set }
     var isFavorite: Bool { get set }
-    var currency: Currency { get set }
     
     var result: CalculationResult { get }
     var isValid: Bool { get }
@@ -31,32 +34,42 @@ protocol FinancialCalculationProtocol {
 @Model
 final class FinancialCalculation {
     var id: UUID
-    var name: String
-    private var calculationTypeRawValue: String
-    var createdDate: Date
-    var lastModified: Date
-    var notes: String
-    var isFavorite: Bool
-    private var currencyRawValue: String
+    var metadata: CalculationMetadata
     
-    /// Computed property for calculationType
-    var calculationType: CalculationType {
-        get {
-            CalculationType(rawValue: calculationTypeRawValue) ?? .timeValue
-        }
-        set {
-            calculationTypeRawValue = newValue.rawValue
-        }
+    // MARK: - Computed Properties for Backward Compatibility
+    var name: String {
+        get { metadata.name }
+        set { metadata.name = newValue }
     }
     
-    /// Computed property for currency
     var currency: Currency {
-        get {
-            Currency(rawValue: currencyRawValue) ?? .usd
-        }
-        set {
-            currencyRawValue = newValue.rawValue
-        }
+        get { metadata.currency }
+        set { metadata.currency = newValue }
+    }
+    
+    var calculationType: CalculationType {
+        get { metadata.calculationType }
+        set { metadata.calculationType = newValue }
+    }
+    
+    var createdDate: Date {
+        get { metadata.createdDate }
+        set { metadata.createdDate = newValue }
+    }
+    
+    var lastModified: Date {
+        get { metadata.lastModified }
+        set { metadata.lastModified = newValue }
+    }
+    
+    var notes: String {
+        get { metadata.notes }
+        set { metadata.notes = newValue }
+    }
+    
+    var isFavorite: Bool {
+        get { metadata.isFavorite }
+        set { metadata.isFavorite = newValue }
     }
     
     /// Computed result of the calculation
@@ -76,35 +89,33 @@ final class FinancialCalculation {
         notes: String = ""
     ) {
         self.id = UUID()
-        self.name = name
-        self.calculationTypeRawValue = calculationType.rawValue
-        self.createdDate = Date()
-        self.lastModified = Date()
-        self.notes = notes
-        self.isFavorite = false
-        self.currencyRawValue = currency.rawValue
+        self.metadata = CalculationMetadata(
+            name: name,
+            calculationType: calculationType,
+            currency: currency,
+            notes: notes
+        )
     }
     
     /// Update the last modified timestamp
     func updateTimestamp() {
-        lastModified = Date()
+        metadata.updateTimestamp()
     }
     
     /// Toggle favorite status
     func toggleFavorite() {
-        isFavorite.toggle()
-        updateTimestamp()
+        metadata.toggleFavorite()
     }
     
     /// Validate that all required inputs are provided
     var isValid: Bool {
-        return !name.isEmpty
+        return !metadata.name.isEmpty
     }
     
     /// Get validation errors
     var validationErrors: [String] {
         var errors: [String] = []
-        if name.isEmpty {
+        if metadata.name.isEmpty {
             errors.append("Name is required")
         }
         return errors
