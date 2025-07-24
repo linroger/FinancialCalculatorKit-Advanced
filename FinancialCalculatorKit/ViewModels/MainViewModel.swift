@@ -176,41 +176,7 @@ enum ChartType: String, CaseIterable, Identifiable {
     }
 }
 
-/// Export format options
-enum ExportFormat: String, CaseIterable, Identifiable {
-    case csv = "csv"
-    case excel = "excel"
-    case pdf = "pdf"
-    case json = "json"
-    
-    var id: String { rawValue }
-    
-    var displayName: String {
-        switch self {
-        case .csv:
-            return "CSV"
-        case .excel:
-            return "Excel"
-        case .pdf:
-            return "PDF"
-        case .json:
-            return "JSON"
-        }
-    }
-    
-    var fileExtension: String {
-        switch self {
-        case .csv:
-            return "csv"
-        case .excel:
-            return "xlsx"
-        case .pdf:
-            return "pdf"
-        case .json:
-            return "json"
-        }
-    }
-}
+// ExportFormat is now defined in FinancialComputable.swift
 
 /// Application-specific errors
 enum FinancialCalculatorError: LocalizedError, Identifiable {

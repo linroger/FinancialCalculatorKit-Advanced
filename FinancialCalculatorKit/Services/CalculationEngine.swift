@@ -3,6 +3,7 @@
 //  FinancialCalculatorKit
 //
 //  Created by Roger Lin on 6/8/25.
+//  Enhanced with async support, progress reporting, and error handling
 //
 
 import Foundation
@@ -10,9 +11,30 @@ import Numerics
 import RealModule
 import ComplexModule
 import MathParser
+import Combine
 
 /// Core financial calculation engine implementing standard financial formulas with advanced mathematical capabilities
-class CalculationEngine {
+public final class CalculationEngine: ObservableObject {
+    
+    // MARK: - Singleton Instance
+    
+    /// Shared calculation engine instance
+    @MainActor
+    public static let shared = CalculationEngine()
+    
+    // MARK: - Published Properties
+    
+    /// Current calculation progress (0.0 to 1.0)
+    @MainActor @Published public private(set) var progress: Double = 0.0
+    
+    /// Whether a calculation is currently in progress
+    @MainActor @Published public private(set) var isCalculating: Bool = false
+    
+    /// Current calculation status message
+    @MainActor @Published public private(set) var statusMessage: String = ""
+    
+    /// Active calculation tasks
+    @MainActor @Published public private(set) var activeTasks: Set<UUID> = []
     
     // MARK: - Precision Configuration
     
@@ -21,6 +43,164 @@ class CalculationEngine {
     
     /// Enable high-precision calculations globally
     nonisolated(unsafe) public static var enableHighPrecision: Bool = false
+    
+    // MARK: - Private Properties
+    
+    /// Cache for calculation results
+    private var calculationCache = NSCache<NSString, CachedResult>()
+    
+    /// Queue for background calculations
+    private let calculationQueue = DispatchQueue(label: "com.financialcalculator.engine", attributes: .concurrent)
+    
+    /// Active calculation tasks for cancellation
+    private var activeCancellables: [UUID: AnyCancellable] = [:]
+    
+    private init() {
+        calculationCache.countLimit = 100
+        calculationCache.totalCostLimit = 10 * 1024 * 1024 // 10MB
+    }
+    
+    // MARK: - Async Calculation Methods
+    
+    /// Perform a calculation asynchronously with progress reporting
+    @MainActor
+    public func performAsync<T: FinancialComputable>(
+        _ calculation: T,
+        progressHandler: ((Double) -> Void)? = nil
+    ) async throws -> CalculationResult {
+        let taskId = UUID()
+        activeTasks.insert(taskId)
+        isCalculating = true
+        defer {
+            activeTasks.remove(taskId)
+            if activeTasks.isEmpty {
+                isCalculating = false
+                progress = 0.0
+                statusMessage = ""
+            }
+        }
+        
+        // Check cache first
+        let cacheKey = calculation.id.uuidString as NSString
+        if let cached = calculationCache.object(forKey: cacheKey) {
+            if Date().timeIntervalSince(cached.timestamp) < 300 { // 5 minute cache
+                return cached.result
+            }
+        }
+        
+        // Update status
+        statusMessage = "Calculating \(calculation.metadata.name)..."
+        
+        // Perform calculation
+        let result = try await calculation.computeAsync { [weak self] progress in
+            Task { @MainActor in
+                self?.progress = progress
+                progressHandler?(progress)
+            }
+        }
+        
+        // Cache result
+        let cached = CachedResult(result: result, timestamp: Date())
+        calculationCache.setObject(cached, forKey: cacheKey)
+        
+        return result
+    }
+    
+    /// Perform multiple calculations in batch
+    @MainActor
+    public func performBatch<T: FinancialComputable>(
+        _ calculations: [T],
+        progressHandler: ((Double) -> Void)? = nil
+    ) async throws -> [CalculationResult] {
+        let totalCalculations = Double(calculations.count)
+        var completedCalculations = 0.0
+        
+        return try await withThrowingTaskGroup(of: (Int, CalculationResult).self) { group in
+            for (index, calculation) in calculations.enumerated() {
+                group.addTask { [weak self] in
+                    let result = try await self?.performAsync(calculation) { subProgress in
+                        let overallProgress = (completedCalculations + subProgress) / totalCalculations
+                        progressHandler?(overallProgress)
+                    }
+                    return (index, result ?? CalculationResult.empty())
+                }
+            }
+            
+            var results = Array(repeating: CalculationResult.empty(), count: calculations.count)
+            for try await (index, result) in group {
+                results[index] = result
+                completedCalculations += 1
+                progressHandler?(completedCalculations / totalCalculations)
+            }
+            
+            return results
+        }
+    }
+    
+    /// Cancel all active calculations
+    @MainActor
+    public func cancelAllCalculations() {
+        activeCancellables.values.forEach { $0.cancel() }
+        activeCancellables.removeAll()
+        activeTasks.removeAll()
+        isCalculating = false
+        progress = 0.0
+        statusMessage = "Calculations cancelled"
+    }
+    
+    /// Clear calculation cache
+    @MainActor
+    public func clearCache() {
+        calculationCache.removeAllObjects()
+    }
+    
+    // MARK: - Error Handling
+    
+    /// Safely perform a calculation with error handling
+    public static func safeCalculate<T>(
+        _ operation: () throws -> T,
+        defaultValue: T
+    ) -> Result<T, CalculationError> {
+        do {
+            let result = try operation()
+            
+            // Check for numeric validity
+            if let doubleResult = result as? Double {
+                if doubleResult.isNaN {
+                    return .failure(.mathematicalError("Result is not a number"))
+                }
+                if doubleResult.isInfinite {
+                    return .failure(doubleResult > 0 ? .overflow : .underflow)
+                }
+            }
+            
+            return .success(result)
+        } catch let error as CalculationError {
+            return .failure(error)
+        } catch {
+            return .failure(.mathematicalError(error.localizedDescription))
+        }
+    }
+    
+    /// Validate calculation inputs
+    public static func validateInputs(
+        _ inputs: [String: Double],
+        rules: [String: (Double) -> Bool]
+    ) throws {
+        for (name, value) in inputs {
+            if let rule = rules[name], !rule(value) {
+                throw CalculationError.invalidInput("Invalid \(name): \(value)")
+            }
+            
+            if value.isNaN {
+                throw CalculationError.invalidInput("\(name) is not a number")
+            }
+            
+            if value.isInfinite {
+                throw CalculationError.invalidInput("\(name) is infinite")
+            }
+        }
+    }
     
     // MARK: - Mathematical Expression Evaluation
     
@@ -1378,6 +1558,367 @@ extension CalculationEngine {
     }
 }
 
+// MARK: - Supporting Types
+
+/// Cached calculation result
+fileprivate class CachedResult {
+    let result: CalculationResult
+    let timestamp: Date
+    
+    init(result: CalculationResult, timestamp: Date) {
+        self.result = result
+        self.timestamp = timestamp
+    }
+}
+
+// MARK: - CalculationResult Extensions
+
+extension CalculationResult {
+    /// Create an empty result
+    static func empty() -> CalculationResult {
+        return CalculationResult(
+            primaryValue: 0,
+            formattedPrimaryValue: "No result",
+            explanation: "Calculation not performed"
+        )
+    }
+}
+
+// MARK: - Thread-Safe Calculation Methods
+
+extension CalculationEngine {
+    
+    /// Thread-safe wrapper for time value calculations
+    public func calculateTimeValueAsync(
+        presentValue: Double? = nil,
+        futureValue: Double? = nil,
+        payment: Double? = nil,
+        interestRate: Double? = nil,
+        numberOfPeriods: Double? = nil,
+        solveFor: TimeValueVariable,
+        paymentAtBeginning: Bool = false,
+        paymentFrequency: PaymentFrequency = .monthly
+    ) async throws -> Double {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            calculationQueue.async {
+                do {
+                    let result: Double
+                    
+                    switch solveFor {
+                    case .presentValue:
+                        guard let fv = futureValue, let rate = interestRate, let periods = numberOfPeriods else {
+                            throw CalculationError.invalidInput("Missing required inputs for present value calculation")
+                        }
+                        result = CalculationEngine.calculatePresentValue(
+                            futureValue: fv,
+                            payment: payment,
+                            interestRate: rate,
+                            numberOfPeriods: periods,
+                            paymentAtBeginning: paymentAtBeginning
+                        )
+                        
+                    case .futureValue:
+                        guard let pv = presentValue, let rate = interestRate, let periods = numberOfPeriods else {
+                            throw CalculationError.invalidInput("Missing required inputs for future value calculation")
+                        }
+                        result = CalculationEngine.calculateFutureValue(
+                            presentValue: pv,
+                            payment: payment,
+                            interestRate: rate,
+                            numberOfPeriods: periods,
+                            paymentAtBeginning: paymentAtBeginning
+                        )
+                        
+                    case .payment:
+                        guard let rate = interestRate, let periods = numberOfPeriods else {
+                            throw CalculationError.invalidInput("Missing required inputs for payment calculation")
+                        }
+                        result = CalculationEngine.calculatePayment(
+                            presentValue: presentValue,
+                            futureValue: futureValue,
+                            interestRate: rate,
+                            numberOfPeriods: periods,
+                            paymentAtBeginning: paymentAtBeginning
+                        )
+                        
+                    case .interestRate:
+                        guard let periods = numberOfPeriods else {
+                            throw CalculationError.invalidInput("Missing required inputs for interest rate calculation")
+                        }
+                        result = CalculationEngine.calculateInterestRate(
+                            presentValue: presentValue,
+                            futureValue: futureValue,
+                            payment: payment,
+                            numberOfPeriods: periods,
+                            paymentAtBeginning: paymentAtBeginning
+                        )
+                        
+                    case .numberOfYears:
+                        guard let rate = interestRate else {
+                            throw CalculationError.invalidInput("Missing required inputs for period calculation")
+                        }
+                        let periods = CalculationEngine.calculateNumberOfPeriods(
+                            presentValue: presentValue,
+                            futureValue: futureValue,
+                            payment: payment,
+                            interestRate: rate,
+                            paymentAtBeginning: paymentAtBeginning
+                        )
+                        result = periods / Double(paymentFrequency.periodsPerYear)
+                    }
+                    
+                    continuation.resume(returning: result)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    /// Thread-safe NPV calculation with progress reporting
+    public func calculateNPVAsync(
+        cashFlows: [Double],
+        discountRate: Double,
+        progressHandler: ((Double) -> Void)? = nil
+    ) async throws -> Double {
+        
+        guard !cashFlows.isEmpty else {
+            throw CalculationError.invalidInput("Cash flows cannot be empty")
+        }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            calculationQueue.async {
+                let r = discountRate / 100.0
+                var npv = 0.0
+                let total = Double(cashFlows.count)
+                
+                for (index, cashFlow) in cashFlows.enumerated() {
+                    npv += cashFlow / pow(1 + r, Double(index))
+                    
+                    // Report progress
+                    let progress = Double(index + 1) / total
+                    Task { @MainActor in
+                        progressHandler?(progress)
+                    }
+                }
+                
+                continuation.resume(returning: npv)
+            }
+        }
+    }
+    
+    /// Thread-safe IRR calculation with advanced algorithms
+    public func calculateIRRAsync(
+        cashFlows: [Double],
+        config: AdvancedIRRCalculator.CalculationConfig = .standard,
+        progressHandler: ((Double) -> Void)? = nil
+    ) async throws -> AdvancedIRRCalculator.IRRResult {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            calculationQueue.async {
+                // Create a custom config with progress handler
+                var customConfig = config
+                customConfig.progressHandler = { progress in
+                    Task { @MainActor in
+                        progressHandler?(progress)
+                    }
+                }
+                
+                let result = AdvancedIRRCalculator.calculateIRR(
+                    cashFlows: cashFlows,
+                    config: customConfig
+                )
+                
+                if result.isValid {
+                    continuation.resume(returning: result)
+                } else {
+                    continuation.resume(throwing: CalculationError.convergenceFailure("IRR calculation failed to converge"))
+                }
+            }
+        }
+    }
+    
+    /// Thread-safe bond pricing with Greeks
+    public func calculateBondMetricsAsync(
+        faceValue: Double,
+        couponRate: Double,
+        marketRate: Double,
+        yearsToMaturity: Double,
+        paymentsPerYear: Double = 2,
+        progressHandler: ((Double) -> Void)? = nil
+    ) async throws -> BondMetrics {
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            calculationQueue.async {
+                do {
+                    progressHandler?(0.2)
+                    
+                    let price = CalculationEngine.calculateBondPrice(
+                        faceValue: faceValue,
+                        couponRate: couponRate,
+                        marketRate: marketRate,
+                        yearsToMaturity: yearsToMaturity,
+                        paymentsPerYear: paymentsPerYear
+                    )
+                    
+                    progressHandler?(0.4)
+                    
+                    let modifiedDuration = CalculationEngine.calculateModifiedDuration(
+                        faceValue: faceValue,
+                        couponRate: couponRate,
+                        marketRate: marketRate,
+                        yearsToMaturity: yearsToMaturity,
+                        paymentsPerYear: paymentsPerYear
+                    )
+                    
+                    progressHandler?(0.6)
+                    
+                    let macaulayDuration = CalculationEngine.calculateMacaulayDuration(
+                        faceValue: faceValue,
+                        couponRate: couponRate,
+                        marketRate: marketRate,
+                        yearsToMaturity: yearsToMaturity,
+                        paymentsPerYear: paymentsPerYear
+                    )
+                    
+                    progressHandler?(0.8)
+                    
+                    let convexity = CalculationEngine.calculateConvexity(
+                        faceValue: faceValue,
+                        couponRate: couponRate,
+                        marketRate: marketRate,
+                        yearsToMaturity: yearsToMaturity,
+                        paymentsPerYear: paymentsPerYear
+                    )
+                    
+                    progressHandler?(1.0)
+                    
+                    let metrics = BondMetrics(
+                        price: price,
+                        modifiedDuration: modifiedDuration,
+                        macaulayDuration: macaulayDuration,
+                        convexity: convexity,
+                        currentYield: (couponRate * faceValue / 100) / price * 100
+                    )
+                    
+                    continuation.resume(returning: metrics)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Bond Metrics Result
+
+public struct BondMetrics {
+    public let price: Double
+    public let modifiedDuration: Double
+    public let macaulayDuration: Double
+    public let convexity: Double
+    public let currentYield: Double
+}
+
+// MARK: - Integration with FinancialComputable
+
+extension CalculationEngine {
+    
+    /// Create a standardized calculation result from engine output
+    public static func createCalculationResult(
+        primaryValue: Double,
+        secondaryValues: [String: Double] = [:],
+        calculationType: CalculationType,
+        currency: Currency = .usd,
+        explanation: String? = nil
+    ) -> CalculationResult {
+        
+        let formattedValue = currency.formatValue(primaryValue)
+        let defaultExplanation = "\(calculationType.displayName) calculation result"
+        
+        var chartData: [ChartDataPoint] = []
+        
+        // Generate appropriate chart data based on calculation type
+        switch calculationType {
+        case .timeValue, .loan, .investment:
+            // Generate time series data
+            for (period, value) in secondaryValues.sorted(by: { $0.key < $1.key }) {
+                if let periodNum = Int(period.replacingOccurrences(of: "Period ", with: "")) {
+                    chartData.append(ChartDataPoint(
+                        x: Double(periodNum),
+                        y: value,
+                        label: period
+                    ))
+                }
+            }
+            
+        case .bond, .options:
+            // Generate sensitivity data
+            if let duration = secondaryValues["duration"],
+               let convexity = secondaryValues["convexity"] {
+                for change in stride(from: -2.0, through: 2.0, by: 0.5) {
+                    let priceChange = -duration * change + 0.5 * convexity * change * change
+                    chartData.append(ChartDataPoint(
+                        x: change,
+                        y: primaryValue * (1 + priceChange / 100),
+                        label: String(format: "%.1f%%", change)
+                    ))
+                }
+            }
+            
+        default:
+            // No specific chart data
+            break
+        }
+        
+        return CalculationResult(
+            primaryValue: primaryValue,
+            secondaryValues: secondaryValues,
+            formattedPrimaryValue: formattedValue,
+            explanation: explanation ?? defaultExplanation,
+            chartData: chartData.isEmpty ? nil : chartData
+        )
+    }
+    
+    /// Validate calculation results and generate warnings
+    private static func validateCalculationWarnings(
+        primaryValue: Double,
+        type: CalculationType
+    ) -> [String] {
+        
+        var warnings: [String] = []
+        
+        // Check for extreme values
+        if abs(primaryValue) > 1_000_000_000 {
+            warnings.append("Result exceeds typical range - please verify inputs")
+        }
+        
+        // Type-specific warnings
+        switch type {
+        case .loan:
+            if primaryValue < 0 {
+                warnings.append("Negative payment calculated - check input values")
+            }
+            
+        case .investment:
+            if primaryValue < -100 {
+                warnings.append("Return exceeds -100% - total loss scenario")
+            }
+            
+        case .bond:
+            if primaryValue < 0 {
+                warnings.append("Negative bond price - check yield and coupon inputs")
+            }
+            
+        default:
+            break
+        }
+        
+        return warnings
+    }
+}
+
 // MARK: - Precision Analysis Types
 
 struct PrecisionComparison {
@@ -1462,6 +2003,16 @@ struct ConsistencyTest {
         } else {
             return "Results differ by \(String(format: "%.6f", difference)), exceeding tolerance of \(tolerance)"
         }
+    }
+}
+
+// MARK: - Progress Reporting
+
+extension AdvancedIRRCalculator.CalculationConfig {
+    /// Progress handler for async calculations
+    var progressHandler: ((Double) -> Void)? {
+        get { nil } // Default implementation
+        set { } // To be implemented in actual config
     }
 }
 

@@ -71,7 +71,7 @@ struct StatusIndicator: View {
     }
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: FinancialSpacing.sm) {
             if status == .loading {
                 ProgressView()
                     .scaleEffect(0.8)
@@ -79,9 +79,9 @@ struct StatusIndicator: View {
             } else {
                 Image(systemName: status.systemImage)
                     .foregroundStyle(status.color)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.financialSubheadline)
             }
-            
+
             if let message = message {
                 Text(message)
                     .font(.financialBody)
@@ -89,8 +89,8 @@ struct StatusIndicator: View {
                     .multilineTextAlignment(.leading)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, FinancialSpacing.md)
+        .padding(.vertical, FinancialSpacing.sm)
         .background(status.backgroundColor)
         .cornerRadius(8)
     }
@@ -136,13 +136,13 @@ struct StatusIcon: View {
 }
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: FinancialSpacing.standard) {
         StatusIndicator(.success, message: "All fields are valid")
         StatusIndicator(.warning, message: "Interest rate seems high")
         StatusIndicator(.error, message: "Principal amount is required")
         StatusIndicator(.loading, message: "Calculating...")
         StatusIndicator(.info, message: "This calculation uses compound interest")
-        
+
         HStack {
             StatusIcon(status: StatusIndicator.StatusType.success)
             StatusIcon(status: StatusIndicator.StatusType.warning)

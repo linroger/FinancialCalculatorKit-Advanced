@@ -121,15 +121,32 @@ struct FutureValueView: View {
                             }
                         }
                         
-                        Table(history) {
-                            TableColumn("Period") { item in 
-                                Text("\(item.period)")
-                                    .font(.financialNumber)
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Period")
+                                    .font(.financialSubheadline.bold())
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Text("Value")
+                                    .font(.financialSubheadline.bold())
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
                             }
-                            TableColumn("Value") { item in 
-                                Text(Formatters.formatCurrency(item.value, currency: .usd))
-                                    .font(.financialCurrency)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(6)
+
+                            List(history) { item in
+                                HStack {
+                                    Text("\(item.period)")
+                                        .font(.financialNumber)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    Text(Formatters.formatCurrency(item.value, currency: .usd))
+                                        .font(.financialCurrency)
+                                        .frame(maxWidth: .infinity, alignment: .trailing)
+                                }
+                                .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
                             }
+                            .listStyle(.plain)
                         }
                         .frame(maxHeight: 200)
                         
@@ -170,8 +187,7 @@ struct FutureValueView: View {
         }
         
         Task { @MainActor in
-            do {
-                if showPrecisionMode {
+            if showPrecisionMode {
                     // Use high-precision calculations
                     let context = FinancialValidation.ValidationContext(
                         calculationType: .investment,
@@ -187,7 +203,7 @@ struct FutureValueView: View {
                     )
                     
                     switch result {
-                    case .success(let futureValue):
+                    case .success(_):
                         // Generate series using high precision
                         history = generateHighPrecisionSeries(
                             presentValue: presentValue,
@@ -207,10 +223,7 @@ struct FutureValueView: View {
                     )
                     history = series.map { FutureValueRow(period: $0.period, value: $0.value) }
                 }
-            } catch {
-                calculationError = "Calculation failed: \(error.localizedDescription)"
-            }
-            
+
             isCalculating = false
         }
     }

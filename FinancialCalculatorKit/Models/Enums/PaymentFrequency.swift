@@ -8,7 +8,7 @@
 import Foundation
 
 /// Payment frequency options for financial calculations
-enum PaymentFrequency: String, CaseIterable, Identifiable, Codable {
+public enum PaymentFrequency: String, CaseIterable, Identifiable, Codable {
     case annual = "annual"
     case semiAnnual = "semiAnnual"
     case quarterly = "quarterly"
@@ -16,9 +16,9 @@ enum PaymentFrequency: String, CaseIterable, Identifiable, Codable {
     case weekly = "weekly"
     case daily = "daily"
     
-    var id: String { rawValue }
+    public var id: String { rawValue }
     
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .annual:
             return "Annual"
@@ -36,7 +36,7 @@ enum PaymentFrequency: String, CaseIterable, Identifiable, Codable {
     }
     
     /// Number of payment periods per year
-    var periodsPerYear: Double {
+    public var periodsPerYear: Double {
         switch self {
         case .annual:
             return 1.0
@@ -54,12 +54,12 @@ enum PaymentFrequency: String, CaseIterable, Identifiable, Codable {
     }
     
     /// Convert annual interest rate to period rate
-    func periodRate(from annualRate: Double) -> Double {
+    public func periodRate(from annualRate: Double) -> Double {
         return annualRate / periodsPerYear
     }
     
     /// Convert number of years to number of periods
-    func numberOfPeriods(from years: Double) -> Double {
+    public func numberOfPeriods(from years: Double) -> Double {
         return years * periodsPerYear
     }
     

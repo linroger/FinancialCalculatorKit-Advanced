@@ -9,17 +9,17 @@ import Foundation
 
 /// Common metadata for all financial calculations
 /// This struct encapsulates the shared properties to eliminate code duplication across models
-struct CalculationMetadata: Codable {
-    var name: String
+public struct CalculationMetadata: Codable {
+    public var name: String
     private var calculationTypeRawValue: String
-    var createdDate: Date
-    var lastModified: Date
-    var notes: String
-    var isFavorite: Bool
+    public var createdDate: Date
+    public var lastModified: Date
+    public var notes: String
+    public var isFavorite: Bool
     private var currencyRawValue: String
     
     /// Computed property for calculationType
-    var calculationType: CalculationType {
+    public var calculationType: CalculationType {
         get {
             CalculationType(rawValue: calculationTypeRawValue) ?? .timeValue
         }
@@ -29,7 +29,7 @@ struct CalculationMetadata: Codable {
     }
     
     /// Computed property for currency
-    var currency: Currency {
+    public var currency: Currency {
         get {
             Currency(rawValue: currencyRawValue) ?? .usd
         }
@@ -38,7 +38,7 @@ struct CalculationMetadata: Codable {
         }
     }
     
-    init(
+    public init(
         name: String,
         calculationType: CalculationType,
         currency: Currency = .usd,

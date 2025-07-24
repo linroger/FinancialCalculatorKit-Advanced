@@ -811,30 +811,69 @@ struct DepreciationScheduleView: View {
                     // Depreciation schedule table
                     GroupBox("Depreciation Schedule") {
                         let schedule = generateDepreciationSchedule()
-                        Table(schedule) {
-                            TableColumn("Year") { entry in
-                                Text("\(entry.year)")
-                            }
-                            .width(60)
-                            
-                            TableColumn("Depreciation") { entry in
-                                Text(currency.formatValue(entry.depreciation))
-                                    .font(.system(.body, design: .monospaced))
-                            }
-                            .width(120)
-                            
-                            TableColumn("Cumulative") { entry in
-                                Text(currency.formatValue(entry.cumulativeDepreciation))
-                                    .font(.system(.body, design: .monospaced))
-                            }
-                            .width(120)
-                            
-                            TableColumn("Book Value") { entry in
-                                Text(currency.formatValue(entry.bookValue))
-                                    .font(.system(.body, design: .monospaced))
-                            }
-                            .width(120)
-                        }
+                        InteractiveDataTable(
+                            title: "Schedule",
+                            data: schedule,
+                            columns: [
+                                TableColumn(
+                                    id: "year",
+                                    title: "Year",
+                                    width: 80,
+                                    alignment: .center,
+                                    content: { entry in
+                                        Text("\(entry.year)")
+                                            .font(.system(.body, design: .monospaced))
+                                    },
+                                    searchableText: { "\($0.year)" },
+                                    compare: { $0.year < $1.year }
+                                ),
+                                TableColumn(
+                                    id: "depreciation",
+                                    title: "Depreciation",
+                                    width: 140,
+                                    alignment: .trailing,
+                                    showSummary: true,
+                                    summaryLabel: "Total",
+                                    content: { entry in
+                                        Text(currency.formatValue(entry.depreciation))
+                                            .font(.system(.body, design: .monospaced))
+                                    },
+                                    searchableText: { currency.formatValue($0.depreciation) },
+                                    compare: { $0.depreciation < $1.depreciation },
+                                    summary: { entries in
+                                        currency.formatValue(entries.reduce(0) { $0 + $1.depreciation })
+                                    }
+                                ),
+                                TableColumn(
+                                    id: "cumulative",
+                                    title: "Cumulative",
+                                    width: 140,
+                                    alignment: .trailing,
+                                    content: { entry in
+                                        Text(currency.formatValue(entry.cumulativeDepreciation))
+                                            .font(.system(.body, design: .monospaced))
+                                    },
+                                    searchableText: { currency.formatValue($0.cumulativeDepreciation) },
+                                    compare: { $0.cumulativeDepreciation < $1.cumulativeDepreciation }
+                                ),
+                                TableColumn(
+                                    id: "bookValue",
+                                    title: "Book Value",
+                                    width: 140,
+                                    alignment: .trailing,
+                                    content: { entry in
+                                        Text(currency.formatValue(entry.bookValue))
+                                            .font(.system(.body, design: .monospaced))
+                                            .fontWeight(entry.bookValue <= depreciationData.salvageValue ? .bold : .regular)
+                                    },
+                                    searchableText: { currency.formatValue($0.bookValue) },
+                                    compare: { $0.bookValue < $1.bookValue }
+                                )
+                            ],
+                            rowHeight: 36,
+                            showSummary: true,
+                            allowExport: true
+                        )
                         .frame(height: 300)
                     }
                 }

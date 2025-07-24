@@ -24,18 +24,18 @@ struct DetailRow: View {
             Text(title)
                 .font(isHighlighted ? .financialSubheadline : .financialBody)
                 .foregroundStyle(isHighlighted ? .primary : .secondary)
-            
+
             Spacer()
-            
+
             Text(value)
                 .font(isHighlighted ? .financialNumber : .financialNumber)
                 .foregroundStyle(isHighlighted ? .primary : .primary)
                 .multilineTextAlignment(.trailing)
         }
-        .padding(.vertical, isHighlighted ? 8 : 4)
+        .padding(.vertical, isHighlighted ? FinancialSpacing.sm : FinancialSpacing.xs)
         .background(
-            isHighlighted ? 
-            Color.accentColor.opacity(0.1) : 
+            isHighlighted ?
+            Color.accentColor.opacity(0.1) :
             Color.clear
         )
         .cornerRadius(isHighlighted ? 8 : 0)
@@ -86,7 +86,7 @@ extension DetailRow {
 }
 
 #Preview {
-    VStack(spacing: 16) {
+    VStack(spacing: FinancialSpacing.standard) {
         DetailRow(title: "Principal", value: "$100,000")
         DetailRow(title: "Interest Rate", value: "5.25%")
         DetailRow(title: "Monthly Payment", value: "$2,147.29", isHighlighted: true)

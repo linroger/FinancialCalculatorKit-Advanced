@@ -8,16 +8,16 @@
 import Foundation
 
 /// Variables that can be solved for in time value of money calculations
-enum TimeValueVariable: String, CaseIterable, Identifiable {
+public enum TimeValueVariable: String, CaseIterable, Identifiable {
     case presentValue = "presentValue"
     case futureValue = "futureValue"
     case payment = "payment"
     case interestRate = "interestRate"
     case numberOfYears = "numberOfYears"
     
-    var id: String { rawValue }
+    public var id: String { rawValue }
     
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .presentValue:
             return "Present Value (PV)"
@@ -32,7 +32,7 @@ enum TimeValueVariable: String, CaseIterable, Identifiable {
         }
     }
     
-    var shortName: String {
+    public var shortName: String {
         switch self {
         case .presentValue:
             return "PV"
@@ -47,7 +47,7 @@ enum TimeValueVariable: String, CaseIterable, Identifiable {
         }
     }
     
-    var description: String {
+    public var description: String {
         switch self {
         case .presentValue:
             return "The current value of a future sum of money or stream of cash flows given a specified rate of return"

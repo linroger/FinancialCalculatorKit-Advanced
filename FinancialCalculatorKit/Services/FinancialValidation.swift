@@ -640,6 +640,109 @@ public class FinancialValidation {
         
         return .valid()
     }
+    
+    /// Validate currency amount with flexible parameters
+    public func validateCurrencyAmount(
+        _ value: Double,
+        minValue: Double? = nil,
+        maxValue: Double? = nil,
+        allowNegative: Bool = false,
+        currency: Currency = .usd,
+        context: ValidationContext
+    ) -> ValidationResult {
+        
+        // First check if negative values are allowed
+        if !allowNegative && value < 0 {
+            return .invalid(
+                errorType: .negativeValue,
+                message: "\(context.fieldName) cannot be negative",
+                context: context
+            )
+        }
+        
+        // Then validate range
+        let minimum = minValue ?? (allowNegative ? -settings.maximumPrincipal : settings.minimumPrincipal)
+        let maximum = maxValue ?? settings.maximumPrincipal
+        
+        return validateNumericRange(
+            value,
+            fieldName: context.fieldName,
+            minimum: minimum,
+            maximum: maximum,
+            context: context
+        )
+    }
+    
+    /// Validate general numeric value
+    public func validateGeneralNumber(
+        _ value: Double,
+        minValue: Double? = nil,
+        maxValue: Double? = nil,
+        context: ValidationContext
+    ) -> ValidationResult {
+        return validateNumericRange(
+            value,
+            fieldName: context.fieldName,
+            minimum: minValue,
+            maximum: maxValue,
+            context: context
+        )
+    }
+    
+    /// Validate interest rate with context (overload for ValidationService)
+    public func validateInterestRate(
+        _ value: Double,
+        context: ValidationContext
+    ) -> ValidationResult {
+        return validateInterestRate(value, context: context, allowNegative: false)
+    }
+    
+    /// Validate term with years and frequency
+    public func validateTerm(
+        years: Double,
+        frequency: PaymentFrequency,
+        context: ValidationContext
+    ) -> ValidationResult {
+        return validateTerm(years, fieldName: "Term", context: context)
+    }
+    
+    /// Validate ratio (like LTV, DTI)
+    public func validateRatio(
+        _ value: Double,
+        minValue: Double = 0,
+        maxValue: Double = 1.0,
+        context: ValidationContext
+    ) -> ValidationResult {
+        
+        let result = validateNumericRange(
+            value,
+            fieldName: context.fieldName,
+            minimum: minValue,
+            maximum: maxValue,
+            context: context
+        )
+        
+        if !result.isValid {
+            return result
+        }
+        
+        // Add context-specific warnings
+        if context.fieldName.lowercased().contains("ltv") && value > 0.8 {
+            return ValidationResult(
+                isValid: true,
+                warningMessage: "Loan-to-Value ratio above 80% may require mortgage insurance."
+            )
+        }
+        
+        if context.fieldName.lowercased().contains("dti") && value > 0.43 {
+            return ValidationResult(
+                isValid: true,
+                warningMessage: "Debt-to-Income ratio above 43% may affect loan qualification."
+            )
+        }
+        
+        return .valid()
+    }
 }
 
 // MARK: - Validation Rule Protocol

@@ -34,18 +34,20 @@ struct LoanCalculatorView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: FinancialSpacing.xl) {
                 headerSection
-                
-                HStack(alignment: .top, spacing: 24) {
+
+                HStack(alignment: .top, spacing: FinancialSpacing.xl) {
                     inputSection
                     resultSection
                 }
-                
-                if showAmortizationTable, let result = calculationResult, let tableData = result.tableData {
-                    AmortizationTableView(
-                        tableData: tableData,
-                        currency: currency
+
+                if showAmortizationTable, let calc = calculation {
+                    let schedule = calc.calculateAmortization()
+                    AmortizationTable(
+                        entries: schedule,
+                        currency: currency,
+                        showFullSchedule: true
                     )
                 }
             }
@@ -57,30 +59,31 @@ struct LoanCalculatorView: View {
                 Button("Calculate") {
                     performCalculation()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(FinancialButtonStyle(style: .primary))
                 .financialHover(style: .button)
                 .disabled(!canCalculate)
-                
+
                 if calculationResult != nil {
                     Button(showAmortizationTable ? "Hide Schedule" : "Show Schedule") {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showAmortizationTable.toggle()
                         }
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(FinancialButtonStyle(style: .secondary))
                     .financialHover(style: .button)
                 }
-                
+
                 Button("Save") {
                     saveCalculation()
                 }
+                .buttonStyle(FinancialButtonStyle(style: .success))
                 .financialHover(style: .button)
                 .disabled(calculationResult == nil)
-                
+
                 Button("Clear") {
                     clearAll()
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(FinancialButtonStyle(style: .ghost))
                 .financialHover(style: .button)
             }
         }
@@ -105,22 +108,22 @@ struct LoanCalculatorView: View {
     
     @ViewBuilder
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: FinancialSpacing.md) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: FinancialSpacing.xs) {
                     Text(isMortgage ? "Mortgage Calculator" : "Loan Calculator")
                         .font(.financialTitle)
-                    
-                    Text(isMortgage ? 
+
+                    Text(isMortgage ?
                          "Calculate mortgage payments, total interest, and create detailed amortization schedules for home loans." :
                          "Calculate loan payments, interest costs, and payment schedules for various types of loans.")
                         .font(.financialBody)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
-                VStack(alignment: .trailing, spacing: 8) {
+
+                VStack(alignment: .trailing, spacing: FinancialSpacing.sm) {
                     Picker("Loan Type", selection: $loanType) {
                         ForEach(LoanType.allCases) { type in
                             Text(type.displayName)
@@ -129,12 +132,12 @@ struct LoanCalculatorView: View {
                     }
                     .pickerStyle(.menu)
                     .frame(width: 200)
-                    
-                    HStack(spacing: 8) {
+
+                    HStack(spacing: FinancialSpacing.sm) {
                         Text("Currency:")
                             .font(.financialCaption)
                             .foregroundColor(.secondary)
-                        
+
                         Picker("Currency", selection: $currency) {
                             ForEach(Currency.allCases.prefix(8)) { curr in
                                 Text("\(curr.symbol) \(curr.rawValue)")
@@ -146,9 +149,9 @@ struct LoanCalculatorView: View {
                     }
                 }
             }
-            
+
             if !validationErrors.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: FinancialSpacing.sm) {
                     ForEach(validationErrors, id: \.self) { error in
                         StatusIndicator(.error, message: error)
                     }
@@ -159,208 +162,118 @@ struct LoanCalculatorView: View {
     
     @ViewBuilder
     private var inputSection: some View {
-        VStack(spacing: 20) {
-            GroupBox("Loan Details") {
-                VStack(spacing: 16) {
-                    EnhancedCurrencyInputField(
+        VStack(spacing: FinancialSpacing.lg) {
+            DynamicInputSection(
+                title: "Loan Details",
+                subtitle: isMortgage ? "Home purchase information" : "Loan parameters",
+                variant: .emphasis
+            ) {
+                VStack(spacing: FinancialSpacing.standard) {
+                    DynamicCurrencyField(
                         title: isMortgage ? "Home Price" : "Loan Amount",
                         subtitle: isMortgage ? "Total purchase price" : "Principal amount borrowed",
-                        value: Binding(
-                            get: { principalAmount ?? 0 },
-                            set: { principalAmount = $0 }
-                        ),
+                        value: $principalAmount,
                         currency: currency,
-                        isRequired: true,
-                        helpText: isMortgage ? "The total purchase price of the home" : "The total amount you want to borrow",
-                        maxValue: 10_000_000,
-                        minValue: 1000
+                        configuration: DynamicFieldConfiguration(
+                            isRequired: true,
+                            helpText: isMortgage ? "The total purchase price of the home" : "The total amount you want to borrow"
+                        )
                     )
                     
-                    if isMortgage {
-                        EnhancedCurrencyInputField(
+                    ConditionalSection(condition: isMortgage) {
+                        DynamicCurrencyField(
                             title: "Down Payment",
                             subtitle: "Initial payment amount",
-                            value: Binding(
-                                get: { downPayment ?? 0 },
-                                set: { downPayment = $0 }
-                            ),
+                            value: $downPayment,
                             currency: currency,
-                            helpText: "The amount you pay upfront (typically 10-20% of home price)",
-                            maxValue: principalAmount ?? 1_000_000,
-                            minValue: 0
+                            configuration: DynamicFieldConfiguration(
+                                helpText: "The amount you pay upfront (typically 10-20% of home price)"
+                            )
                         )
                     }
                     
-                    EnhancedPercentageInputField(
+                    DynamicPercentageField(
                         title: "Annual Interest Rate",
                         subtitle: "APR (Annual Percentage Rate)",
-                        value: Binding(
-                            get: { annualInterestRate ?? 0 },
-                            set: { annualInterestRate = $0 }
-                        ),
-                        isRequired: true,
-                        helpText: "The annual interest rate charged by the lender",
-                        maxValue: 50,
-                        minValue: 0.1
+                        value: $annualInterestRate,
+                        configuration: DynamicFieldConfiguration(
+                            isRequired: true,
+                            helpText: "The annual interest rate charged by the lender"
+                        )
                     )
                     
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack(spacing: 4) {
-                            Text("Loan Term")
-                                .font(.headline)
-                                .fontWeight(.medium)
-                            
-                            Text("*")
-                                .foregroundColor(.red)
-                                .font(.headline)
-                            
-                            Spacer()
-                            
-                            Button(action: {}) {
-                                Image(systemName: "questionmark.circle")
-                                    .font(.callout)
-                                    .foregroundColor(.secondary)
+                    DynamicInputField(
+                        title: "Loan Term",
+                        subtitle: "Repayment period in years",
+                        value: Binding(
+                            get: { loanTermYears?.description ?? "" },
+                            set: { loanTermYears = Double($0) }
+                        ),
+                        configuration: DynamicFieldConfiguration(
+                            isRequired: true,
+                            helpText: "The number of years to repay the loan",
+                            validation: .positiveNumber
+                        ),
+                        keyboardType: .decimalPad,
+                        placeholder: isMortgage ? "30" : "5"
+                    )
+                    
+                    VStack(alignment: .leading, spacing: FinancialSpacing.sm) {
+                        Text("Payment Frequency")
+                            .font(.financialSubheadline)
+
+                        Picker("Payment Frequency", selection: $paymentFrequency) {
+                            ForEach(PaymentFrequency.allCases.filter { $0 != .daily && $0 != .weekly }) { freq in
+                                Text(freq.displayName)
+                                    .tag(freq)
                             }
-                            .buttonStyle(.plain)
-                            .help("The number of years to repay the loan")
                         }
-                        
-                        Text("Repayment period in years")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        HStack(spacing: 8) {
-                            TextField(isMortgage ? "30" : "5", value: Binding(
-                                get: { loanTermYears ?? 0 },
-                                set: { loanTermYears = $0 }
-                            ), format: .number)
-                            .textFieldStyle(FinancialTextFieldStyle(
-                                isEditing: false,
-                                hasError: false,
-                                isFocused: false
-                            ))
-                            .numbersOnly(
-                                text: Binding(
-                                    get: { loanTermYears?.description ?? "" },
-                                    set: { loanTermYears = Double($0) }
-                                ),
-                                maxValue: 50,
-                                minValue: 1,
-                                maxDecimalPlaces: 1
-                            )
-                            
-                            Text("years")
-                                .font(.system(.body, design: .monospaced))
-                                .foregroundColor(.secondary)
-                                .frame(minWidth: 30)
-                        }
+                        .pickerStyle(.segmented)
                     }
-                    
-                    Picker("Payment Frequency", selection: $paymentFrequency) {
-                        ForEach(PaymentFrequency.allCases.filter { $0 != .daily && $0 != .weekly }) { freq in
-                            Text(freq.displayName)
-                                .tag(freq)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    
-                    EnhancedCurrencyInputField(
-                        title: "Extra Payment",
-                        subtitle: "Additional amount per payment",
-                        value: Binding(
-                            get: { extraPayment ?? 0 },
-                            set: { extraPayment = $0 }
-                        ),
-                        currency: currency,
-                        helpText: "Additional amount to pay each period to reduce principal faster",
-                        maxValue: 10000,
-                        minValue: 0
-                    )
                 }
-                .padding(16)
             }
-            .groupBoxStyle(FinancialGroupBoxStyle())
+            
+            DynamicInputSection(
+                title: "Additional Options",
+                subtitle: "Optional parameters to reduce interest",
+                isExpanded: false
+            ) {
+                DynamicCurrencyField(
+                    title: "Extra Payment",
+                    subtitle: "Additional amount per payment",
+                    value: $extraPayment,
+                    currency: currency,
+                    configuration: DynamicFieldConfiguration(
+                        helpText: "Additional amount to pay each period to reduce principal faster"
+                    )
+                )
+            }
         }
         .frame(minWidth: 350, maxWidth: 450)
     }
     
     @ViewBuilder
     private var resultSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: FinancialSpacing.lg) {
             if isCalculating {
-                LoadingResultView()
-            } else if let result = calculationResult {
-                ResultDisplayView(
+                LoadingStateView(message: "Calculating loan details...")
+            } else if let result = calculationResult, let calc = calculation {
+                LoanResultView(
                     result: result,
-                    currency: currency
+                    calculation: calc,
+                    currency: currency,
+                    showAmortizationTable: $showAmortizationTable
                 )
-                
-                // Quick summary cards
-                quickSummaryCards
-                
             } else {
                 placeholderResultView
             }
-            
-            // Loan insights
-            LoanInsightsView(
-                principalAmount: principalAmount ?? 0,
-                interestRate: annualInterestRate ?? 0,
-                termYears: loanTermYears ?? 0,
-                isMortgage: isMortgage
-            )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    
-    @ViewBuilder
-    private var quickSummaryCards: some View {
-        if let result = calculationResult {
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 12) {
-                SummaryCard(
-                    title: "Total Interest",
-                    value: result.secondaryValues["Total Interest"] ?? 0,
-                    currency: currency,
-                    icon: "percent",
-                    color: .orange
-                )
-                
-                SummaryCard(
-                    title: "Total Payments",
-                    value: result.secondaryValues["Total Payments"] ?? 0,
-                    currency: currency,
-                    icon: "dollarsign.circle",
-                    color: .blue
-                )
-                
-                if let timeWithExtra = result.secondaryValues["Time Saved (Years)"], timeWithExtra > 0 {
-                    SummaryCard(
-                        title: "Time Saved",
-                        value: timeWithExtra,
-                        currency: currency,
-                        icon: "clock.arrow.circlepath",
-                        color: .green,
-                        isTime: true
-                    )
-                    
-                    SummaryCard(
-                        title: "Interest Saved",
-                        value: result.secondaryValues["Interest Saved"] ?? 0,
-                        currency: currency,
-                        icon: "minus.circle",
-                        color: .green
-                    )
-                }
-            }
-        }
-    }
-    
+
     @ViewBuilder
     private var placeholderResultView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: FinancialSpacing.standard) {
             Image(systemName: isMortgage ? "house" : "creditcard")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary.opacity(0.6))
@@ -377,7 +290,7 @@ struct LoanCalculatorView: View {
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 48)
+        .padding(.vertical, FinancialSpacing.section)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(NSColor.controlBackgroundColor).opacity(0.3))
@@ -453,7 +366,7 @@ struct LoanCalculatorView: View {
         formatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
         let autoGeneratedName = "\(isMortgage ? "Mortgage" : "Loan") Calculator - \(formatter.string(from: Date()))"
         
-        let currentCalculation: LoanCalculation
+        var currentCalculation: LoanCalculation
         if let existingCalc = calculation {
             currentCalculation = existingCalc
         } else {
@@ -469,7 +382,7 @@ struct LoanCalculatorView: View {
                 currency: currency
             )
         }
-        
+
         if currentCalculation.modelContext == nil {
             // Only update name for new calculations
             currentCalculation.name = autoGeneratedName
@@ -516,226 +429,6 @@ struct LoanCalculatorView: View {
     }
 }
 
-/// Summary card component for key metrics
-struct SummaryCard: View {
-    let title: String
-    let value: Double
-    let currency: Currency
-    let icon: String
-    let color: Color
-    let isTime: Bool
-    
-    init(title: String, value: Double, currency: Currency, icon: String, color: Color, isTime: Bool = false) {
-        self.title = title
-        self.value = value
-        self.currency = currency
-        self.icon = icon
-        self.color = color
-        self.isTime = isTime
-    }
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                    .font(.title3)
-                
-                Spacer()
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(formattedValue)
-                    .font(.system(.title3, design: .rounded))
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(color.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(color.opacity(0.2), lineWidth: 1)
-                )
-        )
-    }
-    
-    private var formattedValue: String {
-        if isTime {
-            let years = Int(value)
-            let months = Int((value - Double(years)) * 12)
-            if years > 0 && months > 0 {
-                return "\(years)y \(months)m"
-            } else if years > 0 {
-                return "\(years) years"
-            } else {
-                return "\(months) months"
-            }
-        } else {
-            return currency.formatValue(value)
-        }
-    }
-}
-
-/// Amortization table view with pagination
-struct AmortizationTableView: View {
-    let tableData: [TableRow]
-    let currency: Currency
-    
-    @State private var currentPage: Int = 0
-    @State private var searchText: String = ""
-    
-    private let itemsPerPage = 50
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Text("Amortization Schedule")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                Spacer()
-                
-                HStack {
-                    TextField("Search payments...", text: $searchText)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 200)
-                    
-                    Text("\(filteredData.count) payments")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            if !filteredData.isEmpty {
-                VStack(spacing: 0) {
-                    // Header
-                    HStack {
-                        ForEach(columnHeaders, id: \.self) { header in
-                            Text(header)
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 8)
-                        }
-                    }
-                    .padding(.vertical, 12)
-                    .background(Color(NSColor.controlBackgroundColor))
-                    
-                    Divider()
-                    
-                    // Data rows
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(Array(paginatedData.enumerated()), id: \.offset) { index, row in
-                                HStack {
-                                    ForEach(columnHeaders, id: \.self) { header in
-                                        Text(row.values[header] ?? "")
-                                            .font(.system(.body, design: .monospaced))
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .padding(.horizontal, 8)
-                                    }
-                                }
-                                .padding(.vertical, 8)
-                                .background(
-                                    Color(NSColor.controlBackgroundColor)
-                                        .opacity(index % 2 == 0 ? 0 : 0.3)
-                                )
-                            }
-                        }
-                    }
-                    .frame(maxHeight: 400)
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(NSColor.controlBackgroundColor))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(NSColor.separatorColor), lineWidth: 1)
-                        )
-                )
-                
-                // Pagination
-                if totalPages > 1 {
-                    HStack {
-                        Button("Previous") {
-                            if currentPage > 0 {
-                                currentPage -= 1
-                            }
-                        }
-                        .disabled(currentPage == 0)
-                        
-                        Spacer()
-                        
-                        Text("Page \(currentPage + 1) of \(totalPages)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        Button("Next") {
-                            if currentPage < totalPages - 1 {
-                                currentPage += 1
-                            }
-                        }
-                        .disabled(currentPage >= totalPages - 1)
-                    }
-                    .padding(.horizontal)
-                }
-            } else {
-                Text("No payment data available")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .padding(40)
-            }
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(NSColor.windowBackgroundColor))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color(NSColor.separatorColor), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
-        )
-    }
-    
-    private var columnHeaders: [String] {
-        guard !tableData.isEmpty else { return [] }
-        return ["Payment #", "Payment", "Principal", "Interest", "Balance"]
-    }
-    
-    private var filteredData: [TableRow] {
-        if searchText.isEmpty {
-            return tableData
-        } else {
-            return tableData.filter { row in
-                row.values.values.contains { value in
-                    value.localizedCaseInsensitiveContains(searchText)
-                }
-            }
-        }
-    }
-    
-    private var paginatedData: [TableRow] {
-        let startIndex = currentPage * itemsPerPage
-        let endIndex = min(startIndex + itemsPerPage, filteredData.count)
-        return Array(filteredData[startIndex..<endIndex])
-    }
-    
-    private var totalPages: Int {
-        return (filteredData.count + itemsPerPage - 1) / itemsPerPage
-    }
-}
-
 /// Loan insights and tips component
 struct LoanInsightsView: View {
     let principalAmount: Double
@@ -746,7 +439,7 @@ struct LoanInsightsView: View {
     @State private var isExpanded: Bool = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: FinancialSpacing.md) {
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isExpanded.toggle()
@@ -755,36 +448,35 @@ struct LoanInsightsView: View {
                 HStack {
                     Image(systemName: "lightbulb")
                         .foregroundColor(.yellow)
-                    
+
                     Text(isMortgage ? "Mortgage Insights" : "Loan Tips")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
+                        .font(.financialSubheadline)
+
                     Spacer()
-                    
+
                     Image(systemName: "chevron.down")
-                        .font(.caption)
+                        .font(.financialCaption)
                         .foregroundColor(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
             }
             .buttonStyle(.plain)
-            
+
             if isExpanded {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: FinancialSpacing.md) {
                     ForEach(insights, id: \.0) { insight, description in
-                        HStack(alignment: .top, spacing: 12) {
+                        HStack(alignment: .top, spacing: FinancialSpacing.md) {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                                .font(.body)
-                            
-                            VStack(alignment: .leading, spacing: 4) {
+                                .font(.financialBody)
+
+                            VStack(alignment: .leading, spacing: FinancialSpacing.xs) {
                                 Text(insight)
-                                    .font(.body)
+                                    .font(.financialBody)
                                     .fontWeight(.medium)
-                                
+
                                 Text(description)
-                                    .font(.caption)
+                                    .font(.financialCaption)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -793,7 +485,7 @@ struct LoanInsightsView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(16)
+        .padding(FinancialSpacing.standard)
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.yellow.opacity(0.05))

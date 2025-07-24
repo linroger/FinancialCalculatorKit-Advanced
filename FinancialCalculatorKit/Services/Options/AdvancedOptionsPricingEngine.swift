@@ -136,7 +136,7 @@ class AdvancedOptionsPricingEngine: ObservableObject {
         // 4. Exotic options pricing
         var barrierProbability: Double? = nil
         var asianAveragePrice: Double? = nil
-        var lookbackMinMax: (min: Double, max: Double)? = nil
+        var lookbackMinMax: LookbackMinMax? = nil
         
         if optionType == .barrier, let barrierType = barrierType, let barrierLevel = barrierLevel {
             let barrierResult = exoticOptionsPricer.priceBarrierOption(
@@ -176,7 +176,7 @@ class AdvancedOptionsPricingEngine: ObservableObject {
                 dividendYield: dividendYield,
                 volatility: volatility
             )
-            lookbackMinMax = (min: lookbackResult.minPrice, max: lookbackResult.maxPrice)
+            lookbackMinMax = LookbackMinMax(min: lookbackResult.minPrice, max: lookbackResult.maxPrice)
         }
         
         // 5. Risk metrics calculation
@@ -520,9 +520,9 @@ class AdvancedOptionsPricingEngine: ObservableObject {
         riskFreeRate: Double,
         dividendYield: Double,
         volatility: Double
-    ) -> [ScenarioResult] {
+    ) -> [OptionsScenarioResult] {
         
-        var scenarios: [ScenarioResult] = []
+        var scenarios: [OptionsScenarioResult] = []
         let spotShifts = [-0.2, -0.1, -0.05, 0.0, 0.05, 0.1, 0.2]
         
         for shift in spotShifts {
@@ -547,7 +547,7 @@ class AdvancedOptionsPricingEngine: ObservableObject {
                 volatility: volatility
             )
             
-            scenarios.append(ScenarioResult(
+            scenarios.append(OptionsScenarioResult(
                 scenarioName: "Spot \(shift >= 0 ? "+" : "")\(Int(shift * 100))%",
                 parameter: shift,
                 optionPrice: shiftedPrice,
@@ -570,9 +570,9 @@ class AdvancedOptionsPricingEngine: ObservableObject {
         riskFreeRate: Double,
         dividendYield: Double,
         volatility: Double
-    ) -> [ScenarioResult] {
+    ) -> [OptionsScenarioResult] {
         
-        var scenarios: [ScenarioResult] = []
+        var scenarios: [OptionsScenarioResult] = []
         let volShifts = [-0.5, -0.25, -0.1, 0.0, 0.1, 0.25, 0.5]
         
         for shift in volShifts {
@@ -597,7 +597,7 @@ class AdvancedOptionsPricingEngine: ObservableObject {
                 volatility: shiftedVol
             )
             
-            scenarios.append(ScenarioResult(
+            scenarios.append(OptionsScenarioResult(
                 scenarioName: "Vol \(shift >= 0 ? "+" : "")\(Int(shift * 100))%",
                 parameter: shift,
                 optionPrice: shiftedPrice,

@@ -179,26 +179,26 @@ struct OptionQuote: Identifiable {
 
 // MARK: - Advanced Greeks
 
-struct AdvancedGreeks {
+struct AdvancedGreeks: Codable {
     // First-order Greeks
     let delta: Double
     let vega: Double
     let theta: Double
     let rho: Double
     let epsilon: Double  // Dividend sensitivity
-    
+
     // Second-order Greeks
     let gamma: Double
     let vanna: Double    // ∂²V/∂S∂σ
     let volga: Double    // ∂²V/∂σ²
     let charm: Double    // ∂²V/∂S∂t
     let color: Double    // ∂²V/∂S²∂t
-    
+
     // Third-order Greeks
     let speed: Double    // ∂³V/∂S³
     let zomma: Double    // ∂³V/∂S²∂σ
     let ultima: Double   // ∂³V/∂σ³
-    
+
     init(
         delta: Double = 0, vega: Double = 0, theta: Double = 0, rho: Double = 0, epsilon: Double = 0,
         gamma: Double = 0, vanna: Double = 0, volga: Double = 0, charm: Double = 0, color: Double = 0,
@@ -395,7 +395,7 @@ struct StrategyDefinition {
 
 // MARK: - Risk Metrics
 
-struct OptionsRiskMetrics {
+struct OptionsRiskMetrics: Codable {
     let valueAtRisk: Double
     let expectedShortfall: Double
     let maxDrawdown: Double
@@ -404,14 +404,14 @@ struct OptionsRiskMetrics {
     let calmarRatio: Double
     let informationRatio: Double
     let treynorRatio: Double
-    
+
     // Portfolio Greeks aggregation
     let portfolioDelta: Double
     let portfolioGamma: Double
     let portfolioTheta: Double
     let portfolioVega: Double
     let portfolioRho: Double
-    
+
     // Risk decomposition
     let directionalRisk: Double
     let volatilityRisk: Double
@@ -451,7 +451,7 @@ struct MonteCarloParameters {
 
 // MARK: - Advanced Results
 
-struct AdvancedOptionsResults {
+struct AdvancedOptionsResults: Codable {
     // Basic pricing
     let optionPrice: Double
     let intrinsicValue: Double
@@ -480,14 +480,14 @@ struct AdvancedOptionsResults {
     let jumpDiffusionPrice: Double?
     
     // Sensitivity analysis
-    let deltaScenarios: [ScenarioResult]
-    let vegaScenarios: [ScenarioResult]
+    let deltaScenarios: [OptionsScenarioResult]
+    let vegaScenarios: [OptionsScenarioResult]
     let thetaDecay: [TheTaDecayPoint]
     
     // Exotic option specifics
     let barrierProbability: Double?
     let asianAveragePrice: Double?
-    let lookbackMinMax: (min: Double, max: Double)?
+    let lookbackMinMax: LookbackMinMax?
     
     init(
         optionPrice: Double = 0,
@@ -515,12 +515,12 @@ struct AdvancedOptionsResults {
         monteCarloStandardError: Double? = nil,
         hestonPrice: Double? = nil,
         jumpDiffusionPrice: Double? = nil,
-        deltaScenarios: [ScenarioResult] = [],
-        vegaScenarios: [ScenarioResult] = [],
+        deltaScenarios: [OptionsScenarioResult] = [],
+        vegaScenarios: [OptionsScenarioResult] = [],
         thetaDecay: [TheTaDecayPoint] = [],
         barrierProbability: Double? = nil,
         asianAveragePrice: Double? = nil,
-        lookbackMinMax: (min: Double, max: Double)? = nil
+        lookbackMinMax: LookbackMinMax? = nil
     ) {
         self.optionPrice = optionPrice
         self.intrinsicValue = intrinsicValue
@@ -548,8 +548,8 @@ struct AdvancedOptionsResults {
     }
 }
 
-struct ScenarioResult: Identifiable {
-    let id = UUID()
+struct OptionsScenarioResult: Identifiable, Codable {
+    var id: UUID
     let scenarioName: String
     let parameter: Double
     let optionPrice: Double
@@ -558,14 +558,39 @@ struct ScenarioResult: Identifiable {
     let theta: Double
     let vega: Double
     let rho: Double
+
+    init(id: UUID = UUID(), scenarioName: String, parameter: Double, optionPrice: Double, delta: Double, gamma: Double, theta: Double, vega: Double, rho: Double) {
+        self.id = id
+        self.scenarioName = scenarioName
+        self.parameter = parameter
+        self.optionPrice = optionPrice
+        self.delta = delta
+        self.gamma = gamma
+        self.theta = theta
+        self.vega = vega
+        self.rho = rho
+    }
 }
 
-struct TheTaDecayPoint: Identifiable {
-    let id = UUID()
+struct TheTaDecayPoint: Identifiable, Codable {
+    var id: UUID
     let daysToExpiration: Double
     let optionPrice: Double
     let theta: Double
     let timeValue: Double
+
+    init(id: UUID = UUID(), daysToExpiration: Double, optionPrice: Double, theta: Double, timeValue: Double) {
+        self.id = id
+        self.daysToExpiration = daysToExpiration
+        self.optionPrice = optionPrice
+        self.theta = theta
+        self.timeValue = timeValue
+    }
+}
+
+struct LookbackMinMax: Codable {
+    let min: Double
+    let max: Double
 }
 
 // MARK: - Calibration Parameters

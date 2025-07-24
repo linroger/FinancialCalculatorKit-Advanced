@@ -38,4 +38,21 @@
 - **Rationale**: Backend engine is fully implemented, just needs UI
 - **Next Steps**: Design and implement AdvancedBondCalculatorView.swift
 
+### July 24, 2025 - Refactored LoanCalculation to Use CalculationMetadata
+- **Task**: Refactor LoanCalculation.swift to eliminate code duplication
+- **Files Modified**: 
+  - LoanCalculation.swift (refactored to use CalculationMetadata struct)
+- **Changes Made**:
+  - Replaced common properties (id, name, calculationType, createdDate, lastModified, notes, isFavorite, currency) with CalculationMetadata struct
+  - Updated init method to create CalculationMetadata instance
+  - Updated updateTimestamp() and toggleFavorite() methods to delegate to metadata
+  - Updated all property references to use metadata.property pattern
+  - Updated validation methods (isValid and validationErrors) to use metadata.name
+  - Updated currency formatting calls to use metadata.currency
+- **Benefits**:
+  - Reduced code duplication across calculation models
+  - Improved maintainability and consistency
+  - Centralized common functionality in CalculationMetadata struct
+- **Status**: ✅ Completed and committed
+
 (This log will be updated continuously as development progresses)

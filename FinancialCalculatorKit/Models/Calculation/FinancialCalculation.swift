@@ -126,21 +126,61 @@ final class FinancialCalculation {
 
 extension FinancialCalculation: FinancialCalculationProtocol {}
 
+// MARK: - Protocol Default Implementations
+
+extension FinancialCalculationProtocol {
+    /// Convenient accessors for metadata properties
+    var name: String {
+        get { metadata.name }
+        set { metadata.name = newValue }
+    }
+    
+    var calculationType: CalculationType {
+        get { metadata.calculationType }
+        set { metadata.calculationType = newValue }
+    }
+    
+    var createdDate: Date {
+        get { metadata.createdDate }
+        set { metadata.createdDate = newValue }
+    }
+    
+    var lastModified: Date {
+        get { metadata.lastModified }
+        set { metadata.lastModified = newValue }
+    }
+    
+    var notes: String {
+        get { metadata.notes }
+        set { metadata.notes = newValue }
+    }
+    
+    var isFavorite: Bool {
+        get { metadata.isFavorite }
+        set { metadata.isFavorite = newValue }
+    }
+    
+    var currency: Currency {
+        get { metadata.currency }
+        set { metadata.currency = newValue }
+    }
+}
+
 /// Result structure for financial calculations
-struct CalculationResult {
-    let primaryValue: Double
-    let secondaryValues: [String: Double]
-    let formattedPrimaryValue: String
-    let explanation: String
-    let chartData: [ChartDataPoint]?
-    let tableData: [TableRow]?
+public struct CalculationResult: Codable {
+    public let primaryValue: Double
+    public let secondaryValues: [String: Double]
+    public let formattedPrimaryValue: String
+    public let explanation: String
+    public let chartData: [ChartDataPoint]?
+    public let tableData: [TableRow]?
     
     /// Whether the calculation result is valid
-    var isValid: Bool {
+    public var isValid: Bool {
         return !formattedPrimaryValue.contains("Invalid") && !formattedPrimaryValue.contains("Missing")
     }
     
-    init(
+    public init(
         primaryValue: Double,
         secondaryValues: [String: Double] = [:],
         formattedPrimaryValue: String,
@@ -158,27 +198,29 @@ struct CalculationResult {
 }
 
 /// Data point for charts
-struct ChartDataPoint: Identifiable {
-    let id = UUID()
-    let x: Double
-    let y: Double
-    let label: String?
-    let date: Date?
+public struct ChartDataPoint: Identifiable, Codable {
+    public let id = UUID()
+    public let x: Double
+    public let y: Double
+    public let label: String?
+    public let date: Date?
+    public let paymentTotal: Double?
     
-    init(x: Double, y: Double, label: String? = nil, date: Date? = nil) {
+    public init(x: Double, y: Double, label: String? = nil, date: Date? = nil, paymentTotal: Double? = nil) {
         self.x = x
         self.y = y
         self.label = label
         self.date = date
+        self.paymentTotal = paymentTotal
     }
 }
 
 /// Row data for tables
-struct TableRow: Identifiable {
-    let id = UUID()
-    let values: [String: String]
+public struct TableRow: Identifiable, Codable {
+    public let id = UUID()
+    public let values: [String: String]
     
-    init(values: [String: String]) {
+    public init(values: [String: String]) {
         self.values = values
     }
 }

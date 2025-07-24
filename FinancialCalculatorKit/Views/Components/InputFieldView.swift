@@ -14,21 +14,21 @@ struct InputFieldView: View {
     @Binding var value: String
     let placeholder: String
     let keyboardType: KeyboardType
-    let validation: ValidationRule?
+    let validation: InputFieldValidationRule?
     let helpText: String?
     let isRequired: Bool
-    
+
     @State private var isEditing: Bool = false
     @State private var validationError: String?
     @FocusState private var isFocused: Bool
-    
+
     init(
         title: String,
         subtitle: String? = nil,
         value: Binding<String>,
         placeholder: String = "",
         keyboardType: KeyboardType = .default,
-        validation: ValidationRule? = nil,
+        validation: InputFieldValidationRule? = nil,
         helpText: String? = nil,
         isRequired: Bool = false
     ) {
@@ -221,16 +221,21 @@ enum KeyboardType {
 }
 
 /// Input validation result
-struct InputValidationResult: Sendable {
-    let isValid: Bool
-    let errorMessage: String?
+public struct InputValidationResult: Sendable {
+    public let isValid: Bool
+    public let errorMessage: String?
+    
+    public init(isValid: Bool, errorMessage: String?) {
+        self.isValid = isValid
+        self.errorMessage = errorMessage
+    }
 }
 
 /// Validation rules for input fields
-struct ValidationRule: Sendable {
+struct InputFieldValidationRule: Sendable {
     let validate: @Sendable (String) -> InputValidationResult
-    
-    static let positiveNumber = ValidationRule { value in
+
+    static let positiveNumber = InputFieldValidationRule { value in
         guard !value.isEmpty else {
             return InputValidationResult(isValid: false, errorMessage: "This field is required")
         }
@@ -242,31 +247,31 @@ struct ValidationRule: Sendable {
         return InputValidationResult(isValid: true, errorMessage: nil)
     }
     
-    static let nonNegativeNumber = ValidationRule { value in
+    static let nonNegativeNumber = InputFieldValidationRule { value in
         guard !value.isEmpty else {
             return InputValidationResult(isValid: false, errorMessage: "This field is required")
         }
-        
+
         guard let number = Double(value), number >= 0 else {
             return InputValidationResult(isValid: false, errorMessage: "Must be zero or positive")
         }
-        
+
         return InputValidationResult(isValid: true, errorMessage: nil)
     }
-    
-    static let percentage = ValidationRule { value in
+
+    static let percentage = InputFieldValidationRule { value in
         guard !value.isEmpty else {
             return InputValidationResult(isValid: false, errorMessage: "This field is required")
         }
-        
+
         guard let number = Double(value), number >= 0, number <= 100 else {
             return InputValidationResult(isValid: false, errorMessage: "Must be between 0 and 100")
         }
-        
+
         return InputValidationResult(isValid: true, errorMessage: nil)
     }
-    
-    static let required = ValidationRule { value in
+
+    static let required = InputFieldValidationRule { value in
         guard !value.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty else {
             return InputValidationResult(isValid: false, errorMessage: "This field is required")
         }

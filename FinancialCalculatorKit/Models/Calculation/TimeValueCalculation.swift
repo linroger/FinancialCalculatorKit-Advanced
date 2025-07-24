@@ -283,10 +283,29 @@ final class TimeValueCalculation {
         
         var data: [ChartDataPoint] = []
         let periods = Int(paymentFrequency.numberOfPeriods(from: years))
+        let periodRate = paymentFrequency.periodRate(from: rate / 100)
         
         for period in 0...periods {
             let time = paymentFrequency.yearsFromPeriods(Double(period))
-            let value = (presentValue ?? 0.0) * pow(1 + paymentFrequency.periodRate(from: rate / 100), Double(period))
+            
+            // Calculate value including both present value growth and payment accumulation
+            var value = 0.0
+            
+            // Growth of present value
+            if let pv = presentValue {
+                value += pv * pow(1 + periodRate, Double(period))
+            }
+            
+            // Accumulation of payments (future value of annuity)
+            if let pmt = payment, period > 0 {
+                if paymentsAtBeginning {
+                    // Payments at beginning: FV = PMT * ((1+r)^n - 1) / r * (1+r)
+                    value += pmt * (pow(1 + periodRate, Double(period)) - 1) / periodRate * (1 + periodRate)
+                } else {
+                    // Payments at end: FV = PMT * ((1+r)^n - 1) / r
+                    value += pmt * (pow(1 + periodRate, Double(period)) - 1) / periodRate
+                }
+            }
             
             data.append(ChartDataPoint(x: time, y: value, label: "Period \(period)"))
         }

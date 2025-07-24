@@ -43,15 +43,15 @@ struct TimeValueCalculatorView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: FinancialSpacing.xl) {
                 headerSection
-                
-                HStack(alignment: .top, spacing: 24) {
+
+                HStack(alignment: .top, spacing: FinancialSpacing.xl) {
                     inputSection
                     resultSection
                 }
             }
-            .padding(24)
+            .padding(FinancialSpacing.xl)
         }
         .background(Color(NSColor.windowBackgroundColor))
         .toolbar {
@@ -59,18 +59,19 @@ struct TimeValueCalculatorView: View {
                 Button("Calculate") {
                     performCalculation()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(FinancialButtonStyle(style: .primary))
                 .disabled(!canCalculate)
-                
+
                 Button("Save") {
                     saveCalculation()
                 }
+                .buttonStyle(FinancialButtonStyle(style: .success))
                 .disabled(calculationResult == nil)
-                
+
                 Button("Clear") {
                     clearAll()
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(FinancialButtonStyle(style: .ghost))
             }
         }
         .onAppear {
@@ -95,20 +96,20 @@ struct TimeValueCalculatorView: View {
     
     @ViewBuilder
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: FinancialSpacing.md) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: FinancialSpacing.xs) {
                     Text("Time Value of Money Calculator")
                         .font(.financialTitle)
-                    
+
                     Text("Calculate present value, future value, payments, interest rates, and time periods using the fundamental principles of time value of money.")
                         .font(.financialBody)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
-                
-                VStack(alignment: .trailing, spacing: 8) {
+
+                VStack(alignment: .trailing, spacing: FinancialSpacing.sm) {
                     Picker("Solve For", selection: $solveFor) {
                         ForEach(TimeValueVariable.allCases) { variable in
                             Text(variable.displayName)
@@ -117,12 +118,12 @@ struct TimeValueCalculatorView: View {
                     }
                     .pickerStyle(.menu)
                     .frame(width: 200)
-                    
-                    HStack(spacing: 8) {
+
+                    HStack(spacing: FinancialSpacing.sm) {
                         Text("Currency:")
-                            .font(.caption)
+                            .font(.financialCaption)
                             .foregroundColor(.secondary)
-                        
+
                         Picker("Currency", selection: $currency) {
                             ForEach(Currency.allCases.prefix(8)) { curr in
                                 Text("\(curr.symbol) \(curr.rawValue)")
@@ -134,9 +135,9 @@ struct TimeValueCalculatorView: View {
                     }
                 }
             }
-            
+
             if !validationErrors.isEmpty {
-                VStack(spacing: 8) {
+                VStack(spacing: FinancialSpacing.sm) {
                     ForEach(validationErrors, id: \.self) { error in
                         StatusIndicator(.error, message: error)
                     }
@@ -147,14 +148,16 @@ struct TimeValueCalculatorView: View {
     
     @ViewBuilder
     private var inputSection: some View {
-        VStack(spacing: 24) {
-            GroupBox("Calculation Details") {
-                VStack(spacing: 20) {
-                    VStack(alignment: .leading, spacing: 12) {
+        VStack(spacing: FinancialSpacing.xl) {
+            DynamicInputSection(
+                title: "Calculation Details",
+                subtitle: "Configure payment timing and frequency"
+            ) {
+                VStack(spacing: FinancialSpacing.lg) {
+                    VStack(alignment: .leading, spacing: FinancialSpacing.md) {
                         Text("Payment Frequency")
-                            .font(.headline)
-                            .fontWeight(.medium)
-                        
+                            .font(.financialSubheadline)
+
                         Picker("Payment Frequency", selection: $paymentFrequency) {
                             ForEach(PaymentFrequency.allCases) { freq in
                                 Text(freq.displayName)
@@ -163,101 +166,108 @@ struct TimeValueCalculatorView: View {
                         }
                         .pickerStyle(.segmented)
                     }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
+
+                    VStack(alignment: .leading, spacing: FinancialSpacing.sm) {
                         Toggle("Payments at Beginning of Period", isOn: $paymentsAtBeginning)
-                            .font(.body)
-                            .fontWeight(.medium)
-                        
+                            .font(.financialBody)
+
                         Text("Check if payments are made at the beginning of each period (annuity due) rather than at the end (ordinary annuity)")
-                            .font(.caption)
+                            .font(.financialCaption)
                             .foregroundColor(.secondary)
                     }
                 }
             }
-            .groupBoxStyle(FinancialGroupBoxStyle(variant: .standard))
-            
-            GroupBox("Financial Values") {
-                VStack(spacing: 20) {
-                    CurrencyInputField(
+
+            DynamicInputSection(
+                title: "Financial Values",
+                subtitle: "Enter known values to solve for \(solveFor.displayName)",
+                variant: .emphasis
+            ) {
+                VStack(spacing: FinancialSpacing.lg) {
+                    DynamicCurrencyField(
                         title: "Present Value (PV)",
                         subtitle: "Current value of future cash flows",
                         value: $presentValue,
                         currency: currency,
-                        isRequired: solveFor != .presentValue,
-                        helpText: "The current value of the investment or loan principal"
+                        configuration: DynamicFieldConfiguration(
+                            isRequired: solveFor != .presentValue,
+                            isDisabled: solveFor == .presentValue,
+                            helpText: "The current value of the investment or loan principal"
+                        )
                     )
-                    .disabled(solveFor == .presentValue)
-                    .opacity(solveFor == .presentValue ? 0.6 : 1.0)
                     
-                    CurrencyInputField(
+                    DynamicCurrencyField(
                         title: "Future Value (FV)",
                         subtitle: "Value at a specific future date",
                         value: $futureValue,
                         currency: currency,
-                        isRequired: solveFor != .futureValue,
-                        helpText: "The value of the investment at the end of the time period"
+                        configuration: DynamicFieldConfiguration(
+                            isRequired: solveFor != .futureValue,
+                            isDisabled: solveFor == .futureValue,
+                            helpText: "The value of the investment at the end of the time period"
+                        )
                     )
-                    .disabled(solveFor == .futureValue)
-                    .opacity(solveFor == .futureValue ? 0.6 : 1.0)
                     
-                    CurrencyInputField(
+                    DynamicCurrencyField(
                         title: "Payment (PMT)",
                         subtitle: "Periodic payment amount",
                         value: $payment,
                         currency: currency,
-                        isRequired: solveFor != .payment,
-                        helpText: "The amount of each regular payment"
+                        configuration: DynamicFieldConfiguration(
+                            isRequired: solveFor != .payment,
+                            isDisabled: solveFor == .payment,
+                            helpText: "The amount of each regular payment"
+                        )
                     )
-                    .disabled(solveFor == .payment)
-                    .opacity(solveFor == .payment ? 0.6 : 1.0)
                     
-                    PercentageInputField(
+                    DynamicPercentageField(
                         title: "Annual Interest Rate",
                         subtitle: "Nominal annual rate",
                         value: $interestRate,
-                        isRequired: solveFor != .interestRate,
-                        helpText: "The annual interest rate as a percentage"
+                        configuration: DynamicFieldConfiguration(
+                            isRequired: solveFor != .interestRate,
+                            isDisabled: solveFor == .interestRate,
+                            helpText: "The annual interest rate as a percentage"
+                        )
                     )
-                    .disabled(solveFor == .interestRate)
-                    .opacity(solveFor == .interestRate ? 0.6 : 1.0)
                     
-                    InputFieldView(
+                    DynamicInputField(
                         title: "Number of Years",
                         subtitle: "Time period",
                         value: Binding(
                             get: { numberOfYears?.description ?? "" },
                             set: { numberOfYears = Double($0) }
                         ),
-                        placeholder: "10",
+                        configuration: DynamicFieldConfiguration(
+                            isRequired: solveFor != .numberOfYears,
+                            isDisabled: solveFor == .numberOfYears,
+                            helpText: "The total time period in years",
+                            validation: solveFor != .numberOfYears ? .positiveNumber : nil
+                        ),
                         keyboardType: .decimalPad,
-                        validation: solveFor != .numberOfYears ? .positiveNumber : nil,
-                        helpText: "The total time period in years",
-                        isRequired: solveFor != .numberOfYears
+                        placeholder: "10"
                     )
-                    .disabled(solveFor == .numberOfYears)
-                    .opacity(solveFor == .numberOfYears ? 0.6 : 1.0)
                 }
             }
-            .groupBoxStyle(FinancialGroupBoxStyle(variant: .emphasis, isHighlighted: calculationResult != nil))
         }
         .frame(maxWidth: 420)
     }
     
     @ViewBuilder
     private var resultSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: FinancialSpacing.lg) {
             if isCalculating {
                 LoadingStateView(message: "Calculating time value of money...")
-            } else if let result = calculationResult {
-                ResultDisplayView(
+            } else if let result = calculationResult, let calc = calculation {
+                TimeValueResultView(
                     result: result,
+                    calculation: calc,
                     currency: currency
                 )
             } else {
                 placeholderResultView
             }
-            
+
             // Formula reference
             TimeValueFormulaReferenceView(solveFor: solveFor)
         }
@@ -292,8 +302,8 @@ struct TimeValueCalculatorView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, yyyy 'at' h:mm a"
         let calculationName = "Time Value Calculator - \(formatter.string(from: Date()))"
-        
-        let currentCalculation: TimeValueCalculation
+
+        var currentCalculation: TimeValueCalculation
         if let existingCalc = calculation {
             currentCalculation = existingCalc
         } else {
@@ -394,7 +404,7 @@ struct TimeValueFormulaReferenceView: View {
     @State private var isExpanded: Bool = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: FinancialSpacing.md) {
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isExpanded.toggle()
@@ -403,54 +413,53 @@ struct TimeValueFormulaReferenceView: View {
                 HStack {
                     Image(systemName: "function")
                         .foregroundColor(.accentColor)
-                    
+
                     Text("Formula Reference")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
+                        .font(.financialSubheadline)
+
                     Spacer()
-                    
+
                     Image(systemName: "chevron.down")
-                        .font(.caption)
+                        .font(.financialCaption)
                         .foregroundColor(.secondary)
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 }
             }
             .buttonStyle(.plain)
-            
+
             if isExpanded {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: FinancialSpacing.md) {
                     Text(formulaDescription)
-                        .font(.body)
+                        .font(.financialBody)
                         .foregroundColor(.secondary)
-                    
+
                     LaTeX(formulaText)
                         .frame(height: 50)
-                        .padding(12)
+                        .padding(FinancialSpacing.md)
                         .background(
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(Color(NSColor.controlBackgroundColor))
                         )
-                    
+
                     if !variableDefinitions.isEmpty {
                         Text("Where:")
-                            .font(.caption)
+                            .font(.financialCaption)
                             .fontWeight(.semibold)
                             .foregroundColor(.secondary)
-                        
+
                         ForEach(variableDefinitions, id: \.0) { variable, definition in
-                            HStack(alignment: .top, spacing: 8) {
+                            HStack(alignment: .top, spacing: FinancialSpacing.sm) {
                                 Text(variable)
-                                    .font(.system(.caption, design: .monospaced))
+                                    .font(.financialNumberSmall)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.accentColor)
-                                
+
                                 Text("=")
-                                    .font(.caption)
+                                    .font(.financialCaption)
                                     .foregroundColor(.secondary)
-                                
+
                                 Text(definition)
-                                    .font(.caption)
+                                    .font(.financialCaption)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -459,7 +468,7 @@ struct TimeValueFormulaReferenceView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .padding(16)
+        .padding(FinancialSpacing.standard)
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.accentColor.opacity(0.05))

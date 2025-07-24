@@ -159,122 +159,47 @@ struct CreditAnalysis {
         self.defaultProbability = rating.defaultProbability
         self.recoveryRate = recoveryRate
         self.expectedLoss = defaultProbability * (1 - recoveryRate)
-        self.creditVaR = defaultProbability * (1 - recoveryRate) * 2.33 // 99% confidence
+        
+        // Credit VaR requires a proper credit risk model
+        // For now, use a simplified approach based on credit migration
+        // This is a placeholder - real Credit VaR requires simulation or analytical models
+        // Using a rough approximation: VaR = Expected Loss + Unexpected Loss
+        // Unexpected Loss ≈ sqrt(PD * (1-PD)) * LGD * confidence factor
+        let lgd = 1 - recoveryRate
+        let unexpectedLoss = sqrt(defaultProbability * (1 - defaultProbability)) * lgd * 2.33
+        self.creditVaR = expectedLoss + unexpectedLoss
     }
 }
 
 // MARK: - Yield Curve Models
-
-struct YieldCurvePoint: Identifiable, Codable {
-    let id = UUID()
-    let maturity: Double
-    let yield: Double
-    let spotRate: Double
-    let forwardRate: Double
-    let discountFactor: Double
-}
+// YieldCurvePoint is now defined in YieldCurveTypes.swift
 
 // MARK: - SwiftData Compatible Yield Curve Data
 
-struct YieldCurveData: Codable {
+struct YieldCurveData: Codable, YieldCurveProtocol {
     var points: [YieldCurvePoint] = []
-    var curveType: CurveType = .treasury
-    var interpolationMethod: InterpolationMethod = .cubic
+    var curveType: YieldCurveType = .treasury
+    var interpolationMethod: YieldCurveInterpolationMethod = .cubic
 
     init(from yieldCurve: YieldCurve) {
         self.points = yieldCurve.points
-        self.curveType = CurveType(rawValue: yieldCurve.curveType.rawValue) ?? .treasury
-        self.interpolationMethod = InterpolationMethod(rawValue: yieldCurve.interpolationMethod.rawValue) ?? .cubic
+        self.curveType = yieldCurve.curveType
+        self.interpolationMethod = yieldCurve.interpolationMethod
     }
     
-    enum CurveType: String, CaseIterable, Identifiable, Codable {
-        case treasury = "treasury"
-        case swap = "swap"
-        case corporate = "corporate"
-        case municipal = "municipal"
-        
-        var id: String { rawValue }
-        var displayName: String {
-            switch self {
-            case .treasury: return "Treasury Curve"
-            case .swap: return "Swap Curve"
-            case .corporate: return "Corporate Curve"
-            case .municipal: return "Municipal Curve"
-            }
-        }
-    }
-    
-    enum InterpolationMethod: String, CaseIterable, Identifiable, Codable {
-        case linear = "linear"
-        case cubic = "cubic"
-        case nelson = "nelson"
-        case svensson = "svensson"
-        
-        var id: String { rawValue }
-        var displayName: String {
-            switch self {
-            case .linear: return "Linear"
-            case .cubic: return "Cubic Spline"
-            case .nelson: return "Nelson-Siegel"
-            case .svensson: return "Svensson"
-            }
-        }
-    }
-    
-    func getYield(for maturity: Double) -> Double {
-        guard !points.isEmpty else { return 0.05 }
-        
-        // Find surrounding points
-        let sorted = points.sorted { $0.maturity < $1.maturity }
-        
-        if maturity <= sorted.first!.maturity {
-            return sorted.first!.yield
-        }
-        
-        if maturity >= sorted.last!.maturity {
-            return sorted.last!.yield
-        }
-        
-        // Linear interpolation for now (can be enhanced with other methods)
-        for i in 0..<(sorted.count - 1) {
-            let p1 = sorted[i]
-            let p2 = sorted[i + 1]
-            
-            if maturity >= p1.maturity && maturity <= p2.maturity {
-                let weight = (maturity - p1.maturity) / (p2.maturity - p1.maturity)
-                return p1.yield + weight * (p2.yield - p1.yield)
-            }
-        }
-        
-        return 0.05 // Default
-    }
-    
-    func getSpotRate(for maturity: Double) -> Double {
-        // Bootstrap spot rates from yield curve
-        // Simplified implementation - in reality would use bond prices
-        return getYield(for: maturity)
-    }
-    
-    func getForwardRate(from t1: Double, to t2: Double) -> Double {
-        let spot1 = getSpotRate(for: t1)
-        let spot2 = getSpotRate(for: t2)
-        
-        // Forward rate calculation: (1 + r2)^t2 = (1 + r1)^t1 * (1 + f)^(t2-t1)
-        let forwardRate = (pow(1 + spot2, t2) / pow(1 + spot1, t1)) - 1
-        return forwardRate / (t2 - t1)
-    }
+    // Protocol conformance provides getYield, getSpotRate, and getForwardRate
     
     // Convert to YieldCurve for UI operations
     func toYieldCurve() -> YieldCurve {
         let curve = YieldCurve()
         curve.points = points
-        curve.curveType = YieldCurve.CurveType(rawValue: curveType.rawValue) ?? .treasury
-        curve.interpolationMethod = YieldCurve.InterpolationMethod(rawValue: interpolationMethod.rawValue) ?? .cubic
+        curve.curveType = curveType
+        curve.interpolationMethod = interpolationMethod
         return curve
     }
 }
 
-class YieldCurve: ObservableObject {
+class YieldCurve: ObservableObject, YieldCurveProtocol {
     init() {
         self.points = []
         self.curveType = .treasury
@@ -282,85 +207,10 @@ class YieldCurve: ObservableObject {
     }
     
     @Published var points: [YieldCurvePoint] = []
-    @Published var curveType: CurveType = .treasury
-    @Published var interpolationMethod: InterpolationMethod = .cubic
+    @Published var curveType: YieldCurveType = .treasury
+    @Published var interpolationMethod: YieldCurveInterpolationMethod = .cubic
     
-    enum CurveType: String, CaseIterable, Identifiable {
-        case treasury = "treasury"
-        case swap = "swap"
-        case corporate = "corporate"
-        case municipal = "municipal"
-        
-        var id: String { rawValue }
-        var displayName: String {
-            switch self {
-            case .treasury: return "Treasury Curve"
-            case .swap: return "Swap Curve"
-            case .corporate: return "Corporate Curve"
-            case .municipal: return "Municipal Curve"
-            }
-        }
-    }
-    
-    enum InterpolationMethod: String, CaseIterable, Identifiable {
-        case linear = "linear"
-        case cubic = "cubic"
-        case nelson = "nelson"
-        case svensson = "svensson"
-        
-        var id: String { rawValue }
-        var displayName: String {
-            switch self {
-            case .linear: return "Linear"
-            case .cubic: return "Cubic Spline"
-            case .nelson: return "Nelson-Siegel"
-            case .svensson: return "Svensson"
-            }
-        }
-    }
-    
-    func getYield(for maturity: Double) -> Double {
-        guard !points.isEmpty else { return 0.05 }
-        
-        // Find surrounding points
-        let sorted = points.sorted { $0.maturity < $1.maturity }
-        
-        if maturity <= sorted.first!.maturity {
-            return sorted.first!.yield
-        }
-        
-        if maturity >= sorted.last!.maturity {
-            return sorted.last!.yield
-        }
-        
-        // Linear interpolation for now (can be enhanced with other methods)
-        for i in 0..<(sorted.count - 1) {
-            let p1 = sorted[i]
-            let p2 = sorted[i + 1]
-            
-            if maturity >= p1.maturity && maturity <= p2.maturity {
-                let weight = (maturity - p1.maturity) / (p2.maturity - p1.maturity)
-                return p1.yield + weight * (p2.yield - p1.yield)
-            }
-        }
-        
-        return 0.05 // Default
-    }
-    
-    func getSpotRate(for maturity: Double) -> Double {
-        // Bootstrap spot rates from yield curve
-        // Simplified implementation - in reality would use bond prices
-        return getYield(for: maturity)
-    }
-    
-    func getForwardRate(from t1: Double, to t2: Double) -> Double {
-        let spot1 = getSpotRate(for: t1)
-        let spot2 = getSpotRate(for: t2)
-        
-        // Forward rate calculation: (1 + r2)^t2 = (1 + r1)^t1 * (1 + f)^(t2-t1)
-        let forwardRate = (pow(1 + spot2, t2) / pow(1 + spot1, t1)) - 1
-        return forwardRate / (t2 - t1)
-    }
+    // Protocol conformance provides getYield, getSpotRate, and getForwardRate
     
     // Convert to YieldCurveData for persistence
     func toYieldCurveData() -> YieldCurveData {

@@ -1,0 +1,43 @@
+🚨 ROOT CAUSE IDENTIFIED: Table API Syntax Error
+
+FILE: DepreciationCalculatorView.swift, Lines 815-839
+
+PROBLEM:
+The Table() and TableColumn() syntax is INCORRECT for SwiftUI:
+
+CURRENT (WRONG):
+```swift
+Table(schedule) {
+    TableColumn("Year") { entry in
+        Text("\(entry.year)")
+    }
+    .width(60)  ← NOT VALID - .width() doesn't exist on TableColumn
+
+    TableColumn("Depreciation") { entry in
+        Text(...)
+    }
+    .width(120)  ← NOT VALID
+}
+```
+
+ERRORS CAUSED:
+- "generic parameter 'RowData' could not be inferred"
+- "missing argument label 'id:' in call"
+- "missing arguments for parameters 'width', 'content', 'searchableText', 'compare'"
+- "trailing closure passed to parameter of type 'String'"
+
+ROOT ISSUE:
+`.width()` is not a valid modifier. TableColumn may need different parameters.
+
+SOLUTION OPTIONS:
+1. Remove .width() calls entirely (columns will auto-size)
+2. Use .frame(width:) instead if needed
+3. Check if TableColumn needs 'value:' parameter like: TableColumn("Year", value: \.year)
+
+ACTION REQUIRED:
+1. Remove all .width() calls from TableColumn modifiers
+2. Test if that fixes the compilation
+3. If width control is needed, use alternative method
+
+TIMELINE CRITICAL:
+Multiple files still have compilation errors. Must fix this to unblock the build.

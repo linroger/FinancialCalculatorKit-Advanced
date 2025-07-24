@@ -196,7 +196,18 @@ struct MetricCard: View {
         self.icon = "chart.line.uptrend.xyaxis"
         self.color = color
     }
-    
+
+    // Convenience initializer with icon and subtitle
+    init(title: String, value: String, icon: String, color: Color, subtitle: String? = nil) {
+        self.title = title
+        self.value = value
+        self.subtitle = subtitle
+        self.trend = nil
+        self.trendValue = nil
+        self.icon = icon
+        self.color = color
+    }
+
     // Full initializer
     init(title: String, value: String, subtitle: String?, trend: TrendDirection?, trendValue: String?, icon: String, color: Color) {
         self.title = title
@@ -711,6 +722,53 @@ extension View {
     }
 }
 
+// MARK: - Standardized Spacing System
+
+/// Consistent spacing values for layout throughout the app
+/// Following Apple's 8-point grid system for macOS
+enum FinancialSpacing {
+    /// Extra small spacing - 4pt
+    static let xs: CGFloat = 4
+
+    /// Small spacing - 8pt
+    static let sm: CGFloat = 8
+
+    /// Medium spacing - 12pt
+    static let md: CGFloat = 12
+
+    /// Standard spacing - 16pt (base unit)
+    static let standard: CGFloat = 16
+
+    /// Large spacing - 20pt
+    static let lg: CGFloat = 20
+
+    /// Extra large spacing - 24pt
+    static let xl: CGFloat = 24
+
+    /// Double extra large spacing - 32pt
+    static let xxl: CGFloat = 32
+
+    /// Triple extra large spacing - 40pt
+    static let xxxl: CGFloat = 40
+
+    /// Section spacing - 48pt
+    static let section: CGFloat = 48
+
+    // MARK: - Semantic Spacing
+
+    /// Input field internal padding
+    static let inputPadding: EdgeInsets = EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+
+    /// Card padding
+    static let cardPadding: EdgeInsets = EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20)
+
+    /// Section padding
+    static let sectionPadding: EdgeInsets = EdgeInsets(top: 24, leading: 24, bottom: 24, trailing: 24)
+
+    /// Container padding
+    static let containerPadding: EdgeInsets = EdgeInsets(top: 32, leading: 32, bottom: 32, trailing: 32)
+}
+
 // MARK: - Enhanced Typography System for Financial Applications
 
 /// Standardized typography scale following Apple Human Interface Guidelines
@@ -909,6 +967,7 @@ extension View {
     }
 }
 
+/* Preview temporarily disabled to resolve compiler type-checking issues
 #Preview {
     ScrollView {
         VStack(spacing: 32) {
@@ -922,7 +981,7 @@ extension View {
                 }
             }
             .groupBoxStyle(FinancialGroupBoxStyle())
-            
+
             // Metric Cards
             LazyVGrid(columns: [
                 GridItem(.flexible()),
@@ -938,7 +997,7 @@ extension View {
                     icon: "chart.line.uptrend.xyaxis",
                     color: .financialGreen
                 )
-                
+
                 MetricCard(
                     title: "Risk Level",
                     value: "Moderate",
@@ -1035,3 +1094,4 @@ extension View {
     }
     .frame(width: 900, height: 1200)
 }
+*/

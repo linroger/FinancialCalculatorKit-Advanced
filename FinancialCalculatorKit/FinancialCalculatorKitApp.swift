@@ -15,6 +15,7 @@ struct FinancialCalculatorKitApp: App {
     init() {
         // Register custom transformers BEFORE creating the ModelContainer
         CashFlowsTransformer.register()
+        InvestmentRoundsTransformer.register()
         
         // Now create the ModelContainer
         let schema = Schema([

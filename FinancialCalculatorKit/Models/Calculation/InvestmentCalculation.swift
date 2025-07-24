@@ -86,6 +86,14 @@ final class InvestmentCalculation {
     /// Configuration for advanced IRR calculation
     var useHighPrecision: Bool = false
     
+    // MARK: - Blended IRR Parameters
+    /// Multiple investment rounds for blended IRR calculation
+    @Attribute(.transformable(by: InvestmentRoundsTransformer.self))
+    var investmentRounds: [InvestmentRound] = []
+    
+    /// Whether to calculate discounted payback period
+    var calculateDiscountedPayback: Bool = false
+    
     init(
         name: String,
         initialInvestment: Double,
@@ -159,6 +167,18 @@ final class InvestmentCalculation {
             let profitabilityIndex = presentValueOfInflows / abs(initialInvestment)
             secondaryValues["Profitability Index"] = profitabilityIndex
             
+            // Calculate discounted payback period if requested
+            if calculateDiscountedPayback {
+                let discountedPayback = calculateDiscountedPaybackPeriod(
+                    initialInvestment: initialInvestment,
+                    cashFlows: cashFlows,
+                    discountRate: discountRate
+                )
+                if discountedPayback > 0 {
+                    secondaryValues["Discounted Payback Period"] = discountedPayback
+                }
+            }
+            
         case .irr:
             calculatedValue = CalculationEngine.calculateIRR(cashFlows: allCashFlows)
             
@@ -186,6 +206,18 @@ final class InvestmentCalculation {
             }
             if paybackPeriod > 0 {
                 secondaryValues["Payback Period"] = paybackPeriod
+            }
+            
+            // Calculate discounted payback period if requested
+            if calculateDiscountedPayback {
+                let discountedPayback = calculateDiscountedPaybackPeriod(
+                    initialInvestment: initialInvestment,
+                    cashFlows: cashFlows,
+                    discountRate: calculatedValue // Use IRR as discount rate
+                )
+                if discountedPayback > 0 {
+                    secondaryValues["Discounted Payback Period"] = discountedPayback
+                }
             }
             
         case .advancedIRR:
@@ -228,15 +260,32 @@ final class InvestmentCalculation {
             secondaryValues["Traditional IRR"] = traditionalIRR
             
         case .blendedIRR:
-            // For blended IRR, we'll treat the cash flows as a single investment for now
-            // In a real implementation, this would handle multiple investment rounds
-            calculatedValue = CalculationEngine.calculateIRR(cashFlows: allCashFlows)
-            
-            explanation = "Blended IRR for multiple investment rounds (simplified single-round calculation)"
-            
-            secondaryValues["Initial Investment"] = initialInvestment
-            secondaryValues["Total Cash Inflows"] = cashFlows.reduce(0, +)
-            secondaryValues["Investment Rounds"] = 1
+            if !investmentRounds.isEmpty {
+                // Use multiple investment rounds if available
+                let followOnInvestments = investmentRounds.map { $0.toFollowOnInvestment() }
+                calculatedValue = CalculationEngine.calculateBlendedIRR(investments: followOnInvestments)
+                
+                explanation = "Blended IRR for \(investmentRounds.count) investment rounds with different timing and amounts"
+                
+                secondaryValues["Investment Rounds"] = Double(investmentRounds.count)
+                secondaryValues["Total Invested"] = investmentRounds.reduce(0) { $0 + abs($1.amount) }
+                secondaryValues["Total Cash Inflows"] = investmentRounds.flatMap { $0.cashFlows }.reduce(0, +)
+                
+                // Add round-specific information
+                for (index, round) in investmentRounds.enumerated() {
+                    secondaryValues["Round \(index + 1) Amount"] = abs(round.amount)
+                    secondaryValues["Round \(index + 1) Start Period"] = Double(round.startPeriod)
+                }
+            } else {
+                // Fall back to single round calculation
+                calculatedValue = CalculationEngine.calculateIRR(cashFlows: allCashFlows)
+                
+                explanation = "Blended IRR calculated as single investment round"
+                
+                secondaryValues["Initial Investment"] = initialInvestment
+                secondaryValues["Total Cash Inflows"] = cashFlows.reduce(0, +)
+                secondaryValues["Investment Rounds"] = 1
+            }
             
         case .both:
             let npv = CalculationEngine.calculateNPV(
@@ -330,6 +379,32 @@ final class InvestmentCalculation {
         
         return data
     }
+    
+    /// Calculate discounted payback period
+    private func calculateDiscountedPaybackPeriod(
+        initialInvestment: Double,
+        cashFlows: [Double],
+        discountRate: Double
+    ) -> Double {
+        var cumulativeDiscountedCashFlow = -abs(initialInvestment)
+        let discountRateDecimal = discountRate / 100.0
+        
+        for (index, cashFlow) in cashFlows.enumerated() {
+            let period = Double(index + 1)
+            let discountedCashFlow = cashFlow / pow(1 + discountRateDecimal, period)
+            cumulativeDiscountedCashFlow += discountedCashFlow
+            
+            if cumulativeDiscountedCashFlow >= 0 {
+                // Interpolate to find exact period
+                let previousCumulative = cumulativeDiscountedCashFlow - discountedCashFlow
+                let fraction = -previousCumulative / discountedCashFlow
+                return period - 1 + fraction
+            }
+        }
+        
+        // If payback period exceeds the number of periods, return -1
+        return -1
+    }
 }
 
 // MARK: - Protocol Conformance
@@ -379,6 +454,91 @@ enum InvestmentAnalysisType: String, CaseIterable, Identifiable {
         case .blendedIRR:
             return "Calculate IRR for multiple investment rounds with different timing"
         }
+    }
+}
+
+// MARK: - Supporting Types
+
+/// Represents an investment round for blended IRR calculation
+struct InvestmentRound: Codable {
+    let name: String
+    let amount: Double
+    let startPeriod: Int
+    let cashFlows: [Double]
+    let weight: Double
+    
+    init(
+        name: String,
+        amount: Double,
+        startPeriod: Int,
+        cashFlows: [Double] = [],
+        weight: Double = 1.0
+    ) {
+        self.name = name
+        self.amount = amount
+        self.startPeriod = startPeriod
+        self.cashFlows = cashFlows
+        self.weight = weight
+    }
+    
+    /// Convert to FollowOnInvestment for calculation
+    func toFollowOnInvestment() -> FollowOnInvestment {
+        var allCashFlows = [-abs(amount)]
+        allCashFlows.append(contentsOf: cashFlows)
+        
+        return FollowOnInvestment(
+            cashFlows: allCashFlows,
+            startPeriod: startPeriod,
+            weight: weight,
+            description: name
+        )
+    }
+}
+
+/// Transformer for storing InvestmentRound array in SwiftData
+@objc(InvestmentRoundsTransformer)
+final class InvestmentRoundsTransformer: ValueTransformer {
+    
+    override class func transformedValueClass() -> AnyClass {
+        return NSData.self
+    }
+    
+    override class func allowsReverseTransformation() -> Bool {
+        return true
+    }
+    
+    override func transformedValue(_ value: Any?) -> Any? {
+        guard let rounds = value as? [InvestmentRound] else { return nil }
+        
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(rounds)
+            return data as NSData
+        } catch {
+            print("Failed to encode investment rounds: \(error)")
+            return nil
+        }
+    }
+    
+    override func reverseTransformedValue(_ value: Any?) -> Any? {
+        guard let data = value as? Data else { return nil }
+        
+        do {
+            let decoder = JSONDecoder()
+            let rounds = try decoder.decode([InvestmentRound].self, from: data)
+            return rounds
+        } catch {
+            print("Failed to decode investment rounds: \(error)")
+            return nil
+        }
+    }
+    
+    /// Register the transformer for use with SwiftData
+    static func register() {
+        ValueTransformer.setValueTransformer(
+            InvestmentRoundsTransformer(),
+            forName: NSValueTransformerName("InvestmentRoundsTransformer")
+        )
     }
 }
 

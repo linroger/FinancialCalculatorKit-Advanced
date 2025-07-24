@@ -1086,29 +1086,57 @@ struct ScenarioAnalysisView: View {
     
     @ViewBuilder
     private var scenarioTable: some View {
-        Table(generateScenarios()) {
-            TableColumn("Scenario") { scenario in
-                Text(scenario.name)
-                    .fontWeight(.medium)
+        VStack(alignment: .leading, spacing: 0) {
+            // Header row
+            HStack(spacing: 0) {
+                Text("Scenario")
+                    .font(.financialSubheadline)
+                    .fontWeight(.semibold)
+                    .frame(width: 120, alignment: .leading)
+
+                Text("NPV")
+                    .font(.financialSubheadline)
+                    .fontWeight(.semibold)
+                    .frame(width: 100, alignment: .trailing)
+
+                Text("IRR")
+                    .font(.financialSubheadline)
+                    .fontWeight(.semibold)
+                    .frame(width: 100, alignment: .trailing)
+
+                Text("Decision")
+                    .font(.financialSubheadline)
+                    .fontWeight(.semibold)
+                    .frame(width: 80, alignment: .trailing)
             }
-            .width(120)
-            
-            TableColumn("NPV") { scenario in
-                npvColumn(for: scenario)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(NSColor.controlBackgroundColor))
+
+            Divider()
+
+            // Data rows
+            List(generateScenarios()) { scenario in
+                HStack(spacing: 0) {
+                    Text(scenario.name)
+                        .font(.financialBody)
+                        .fontWeight(.medium)
+                        .frame(width: 120, alignment: .leading)
+
+                    npvColumn(for: scenario)
+                        .frame(width: 100, alignment: .trailing)
+
+                    irrColumn(for: scenario)
+                        .frame(width: 100, alignment: .trailing)
+
+                    decisionColumn(for: scenario)
+                        .frame(width: 80, alignment: .trailing)
+                }
+                .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
             }
-            .width(100)
-            
-            TableColumn("IRR") { scenario in
-                irrColumn(for: scenario)
-            }
-            .width(100)
-            
-            TableColumn("Decision") { scenario in
-                decisionColumn(for: scenario)
-            }
-            .width(80)
+            .listStyle(.plain)
         }
-        .frame(height: 200)
+        .frame(height: 250)
     }
     
     @ViewBuilder

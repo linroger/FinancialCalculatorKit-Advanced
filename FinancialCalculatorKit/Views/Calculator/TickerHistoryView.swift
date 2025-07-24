@@ -30,9 +30,27 @@ struct TickerHistoryView: View {
                 .frame(height: 200)
                 .padding()
 
-                Table(prices) {
-                    TableColumn("Date") { Text($0.date, format: .dateTime.year().month().day()) }
-                    TableColumn("Close") { Text($0.close, format: .currency(code: Locale.current.currency?.identifier ?? "USD")) }
+                // Price history table
+                List {
+                    HStack {
+                        Text("Date")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("Close")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                    .padding(.vertical, 4)
+
+                    ForEach(prices) { price in
+                        HStack {
+                            Text(price.date, format: .dateTime.year().month().day())
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(price.close, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
+                        .padding(.vertical, 2)
+                    }
                 }
                 .frame(maxHeight: 300)
                 .padding()
