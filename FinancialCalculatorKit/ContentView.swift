@@ -10,12 +10,12 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var calculations: [FinancialCalculation]
     @State private var viewModel = MainViewModel()
+    @State private var selectedCategory: CalculationCategory? = .basics
     
     var body: some View {
         NavigationSplitView {
-            SidebarView(viewModel: viewModel)
+            SidebarView(viewModel: viewModel, selectedCategory: $selectedCategory)
         } detail: {
             DetailView()
                 .environment(viewModel)
@@ -51,50 +51,57 @@ struct ContentView: View {
 
 struct SidebarView: View {
     @Bindable var viewModel: MainViewModel
+    @Binding var selectedCategory: CalculationCategory?
     @Environment(\.modelContext) private var modelContext
-    @Query private var calculations: [FinancialCalculation]
+
+    // Queries for all calculation types
+    @Query(sort: \TimeValueCalculation.lastModified, order: .reverse) private var timeValueCalculations: [TimeValueCalculation]
+    @Query(sort: \LoanCalculation.lastModified, order: .reverse) private var loanCalculations: [LoanCalculation]
+    @Query(sort: \InvestmentCalculation.lastModified, order: .reverse) private var investmentCalculations: [InvestmentCalculation]
+    @Query(sort: \BondCalculation.lastModified, order: .reverse) private var bondCalculations: [BondCalculation]
+    @Query(sort: \OptionsCalculation.lastModified, order: .reverse) private var optionsCalculations: [OptionsCalculation]
+    @Query(sort: \MathExpressionCalculation.lastModified, order: .reverse) private var mathCalculations: [MathExpressionCalculation]
+    @Query(sort: \DepreciationCalculation.lastModified, order: .reverse) private var depreciationCalculations: [DepreciationCalculation]
+
+    // Legacy support
+    @Query private var legacyCalculations: [FinancialCalculation]
     
     var body: some View {
         List(selection: $viewModel.selectedCalculationType) {
-            Section("Calculators") {
-                ForEach(CalculationType.allCases) { type in
-                    NavigationLink(value: type) {
-                        Label(type.displayName, systemImage: type.systemImage)
+            // Dashboard Link
+            NavigationLink(value: Optional<CalculationType>.none) {
+                Label("Dashboard", systemImage: "square.grid.2x2")
+            }
+            .tag(Optional<CalculationType>.none)
+
+            ForEach(CalculationCategory.allCases) { category in
+                Section(category.rawValue) {
+                    ForEach(CalculationType.allCases.filter { $0.category == category }) { type in
+                        NavigationLink(value: type) {
+                            Label(type.displayName, systemImage: type.systemImage)
+                        }
+                        .tag(type)
                     }
-                    .tag(type)
                 }
             }
             
             Section("Recent Calculations") {
-                ForEach(recentCalculations) { calculation in
+                ForEach(allRecentCalculations) { calculation in
                     CalculationRowView(calculation: calculation)
                         .environment(viewModel)
                 }
                 .onDelete(perform: deleteCalculations)
             }
         }
-        .navigationTitle("Financial Calculator")
-        .navigationSplitViewColumnWidth(min: 280, ideal: 320)
-        .searchable(text: $viewModel.searchText, prompt: "Search calculations...")
+        .navigationTitle("Financial Kit")
+        .navigationSplitViewColumnWidth(min: 250, ideal: 280)
+        .searchable(text: $viewModel.searchText, prompt: "Search...")
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button(action: { viewModel.showFavoritesOnly.toggle() }) {
                     Image(systemName: viewModel.showFavoritesOnly ? "heart.fill" : "heart")
                 }
                 .help("Show favorites only")
-                
-                Menu {
-                    ForEach(CalculationType.allCases) { type in
-                        Button(action: { viewModel.createNewCalculation(type: type) }) {
-                            Label(type.displayName, systemImage: type.systemImage)
-                        }
-                    }
-                } label: {
-                    Image(systemName: "plus")
-                } primaryAction: {
-                    viewModel.createNewCalculation(type: viewModel.selectedCalculationType)
-                }
-                .help("Create new calculation")
             }
             
             ToolbarItemGroup(placement: .secondaryAction) {
@@ -111,15 +118,26 @@ struct SidebarView: View {
         }
     }
     
-    private var recentCalculations: [FinancialCalculation] {
-        viewModel.filteredCalculations(calculations)
+    private var allRecentCalculations: [FinancialCalculation] {
+        var allItems: [FinancialCalculation] = []
+
+        allItems.append(contentsOf: timeValueCalculations)
+        allItems.append(contentsOf: loanCalculations)
+        allItems.append(contentsOf: investmentCalculations)
+        allItems.append(contentsOf: bondCalculations)
+        allItems.append(contentsOf: optionsCalculations)
+        allItems.append(contentsOf: mathCalculations)
+        allItems.append(contentsOf: depreciationCalculations)
+        allItems.append(contentsOf: legacyCalculations)
+
+        return viewModel.filteredCalculations(allItems)
             .prefix(10)
             .map { $0 }
     }
     
     private func deleteCalculations(offsets: IndexSet) {
         for index in offsets {
-            let calculation = recentCalculations[index]
+            let calculation = allRecentCalculations[index]
             viewModel.deleteCalculation(calculation, from: modelContext)
         }
     }
@@ -191,48 +209,35 @@ struct DetailView: View {
     
     var body: some View {
         Group {
-            switch viewModel.selectedCalculationType {
-            case .timeValue:
-                TimeValueCalculatorView()
-            case .loan, .mortgage:
-                LoanCalculatorView()
-            case .bond:
-                BondCalculatorView()
-            case .investment:
-                InvestmentCalculatorView()
-            case .options:
-                OptionsCalculatorView()
-            case .mathExpression:
-                MathExpressionCalculatorView()
-            case .depreciation:
-                DepreciationCalculatorView()
-            case .currency:
-                CurrencyConverterView()
-            case .conversion:
-                UnitConverterView()
+            if let type = viewModel.selectedCalculationType {
+                switch type {
+                case .timeValue:
+                    TimeValueCalculatorView()
+                case .loan, .mortgage:
+                    LoanCalculatorView()
+                case .bond:
+                    BondCalculatorView()
+                case .investment:
+                    InvestmentCalculatorView()
+                case .options:
+                    OptionsCalculatorView()
+                case .mathExpression:
+                    MathExpressionCalculatorView()
+                case .depreciation:
+                    DepreciationCalculatorView()
+                case .currency:
+                    CurrencyConverterView()
+                case .conversion:
+                    UnitConverterView()
+                }
+            } else {
+                DashboardView()
             }
         }
-        .navigationTitle(viewModel.selectedCalculationType.displayName)
-        .navigationSubtitle(viewModel.selectedCalculationType.description)
+        .navigationTitle(viewModel.selectedCalculationType?.displayName ?? "Dashboard")
         .frame(minWidth: 600, minHeight: 400)
     }
 }
-
-// MARK: - Placeholder Views (to be implemented)
-
-// TimeValueCalculatorView is now implemented in its own file
-
-// LoanCalculatorView is now implemented in its own file
-
-// BondCalculatorView is now implemented in its own file
-
-// InvestmentCalculatorView is now implemented in its own file
-
-// DepreciationCalculatorView is now implemented in its own file
-
-// CurrencyConverterView is now implemented in its own file
-
-// UnitConverterView is now implemented in its own file
 
 struct CalculationSheetView: View {
     @Environment(MainViewModel.self) private var viewModel
@@ -244,10 +249,16 @@ struct CalculationSheetView: View {
                 Text("Calculation Editor")
                     .font(.title)
                 
-                Text("Calculator type: \(viewModel.selectedCalculationType.displayName)")
-                    .font(.headline)
-                    .padding()
-                
+                if let type = viewModel.selectedCalculationType {
+                     Text("Calculator type: \(type.displayName)")
+                        .font(.headline)
+                        .padding()
+                } else {
+                     Text("Select a calculator type")
+                        .font(.headline)
+                        .padding()
+                }
+
                 Spacer()
                 
                 Text("Implementation coming soon...")

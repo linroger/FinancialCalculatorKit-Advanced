@@ -15,6 +15,7 @@ struct OptionsCalculatorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(MainViewModel.self) private var mainViewModel
     
+    @State private var calculation: OptionsCalculation?
     @State private var calculationName: String = ""
     @State private var spotPrice: Double = 100.0
     @State private var strikePrice: Double = 100.0
@@ -25,7 +26,7 @@ struct OptionsCalculatorView: View {
     @State private var currency: Currency = .usd
     
     @State private var isCalculating: Bool = false
-    @State private var calculationResult: OptionsResult?
+    @State private var calculationResult: CalculationResult?
     @State private var validationErrors: [String] = []
     @State private var showingGreeksAnalysis: Bool = false
     @State private var showingVolatilitySurface: Bool = false
@@ -40,7 +41,7 @@ struct OptionsCalculatorView: View {
                     resultSection
                 }
                 
-                if let result = calculationResult {
+                if let result = calculationResult, result.isValid {
                     analysisSection
                 }
             }
@@ -99,6 +100,19 @@ struct OptionsCalculatorView: View {
         }
         .onAppear {
             currency = mainViewModel.userPreferences.defaultCurrency
+            // If editing an existing calculation, load its data
+            if let selected = mainViewModel.selectedCalculation as? OptionsCalculation {
+                self.calculation = selected
+                self.calculationName = selected.name
+                self.spotPrice = selected.spotPrice
+                self.strikePrice = selected.strikePrice
+                self.timeToExpiry = selected.timeToExpiry
+                self.riskFreeRate = selected.riskFreeRate
+                self.volatility = selected.volatility
+                self.optionType = selected.optionType
+                self.currency = selected.currency
+                performCalculation()
+            }
         }
     }
     
@@ -210,17 +224,15 @@ struct OptionsCalculatorView: View {
                         }
                         
                         CurrencyInputField(
-                            title: "Spot Price",
                             value: Binding(
                                 get: { spotPrice },
                                 set: { 
-                                    spotPrice = max(0, $0 ?? 0)
+                                    spotPrice = max(0, $0)
                                     clearResults()
                                 }
                             ),
                             currency: currency,
-                            isRequired: true,
-                            helpText: "Current market price of the underlying asset"
+                            placeholder: "Spot Price"
                         )
                     }
                     
@@ -241,17 +253,15 @@ struct OptionsCalculatorView: View {
                         }
                         
                         CurrencyInputField(
-                            title: "Strike Price",
                             value: Binding(
                                 get: { strikePrice },
                                 set: { 
-                                    strikePrice = max(0, $0 ?? 0)
+                                    strikePrice = max(0, $0)
                                     clearResults()
                                 }
                             ),
                             currency: currency,
-                            isRequired: true,
-                            helpText: "Exercise price of the option"
+                            placeholder: "Strike Price"
                         )
                     }
                     
@@ -390,7 +400,7 @@ struct OptionsCalculatorView: View {
                             .font(.headline)
                             .foregroundColor(.secondary)
                         
-                        Text(currency.formatValue(result.optionPrice))
+                        Text(currency.formatValue(result.primaryValue))
                             .font(.system(size: 36, weight: .bold, design: .rounded))
                             .foregroundColor(.primary)
                         
@@ -423,38 +433,29 @@ struct OptionsCalculatorView: View {
                 .groupBoxStyle(FinancialGroupBoxStyle())
                 
                 // Greeks
-                GroupBox("Option Greeks") {
-                    VStack(spacing: 12) {
-                        DetailRow(
-                            title: "Delta (Δ)",
-                            value: String(format: "%.4f", result.delta),
-                            isHighlighted: true
-                        )
-                        DetailRow(
-                            title: "Gamma (Γ)",
-                            value: String(format: "%.6f", result.gamma)
-                        )
-                        DetailRow(
-                            title: "Theta (Θ)",
-                            value: String(format: "%.4f", result.theta)
-                        )
-                        DetailRow(
-                            title: "Vega (ν)",
-                            value: String(format: "%.4f", result.vega)
-                        )
-                        DetailRow(
-                            title: "Rho (ρ)",
-                            value: String(format: "%.4f", result.rho)
-                        )
+                if let delta = result.secondaryValues["Delta"],
+                   let gamma = result.secondaryValues["Gamma"] {
+                    GroupBox("Option Greeks") {
+                        VStack(spacing: 12) {
+                            DetailRow(
+                                title: "Delta (Δ)",
+                                value: String(format: "%.4f", delta),
+                                isHighlighted: true
+                            )
+                            DetailRow(
+                                title: "Gamma (Γ)",
+                                value: String(format: "%.6f", gamma)
+                            )
+                        }
+                        .padding(16)
                     }
-                    .padding(16)
+                    .groupBoxStyle(FinancialGroupBoxStyle())
                 }
-                .groupBoxStyle(FinancialGroupBoxStyle())
                 
                 // Risk Metrics
                 GroupBox("Risk Analysis") {
                     VStack(alignment: .leading, spacing: 12) {
-                        ForEach(generateRiskInsights(), id: \.self) { insight in
+                        ForEach(generateRiskInsights(result: result), id: \.self) { insight in
                             HStack(alignment: .top, spacing: 8) {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.orange)
@@ -512,69 +513,14 @@ struct OptionsCalculatorView: View {
     private var analysisSection: some View {
         VStack(spacing: 20) {
             // Option price sensitivity chart
-            if let result = calculationResult {
-                GroupBox("Price Sensitivity Analysis") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Option Price vs Underlying Price")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                        
-                        Chart {
-                            ForEach(generatePriceSensitivityData(), id: \.spotPrice) { point in
-                                LineMark(
-                                    x: .value("Spot Price", point.spotPrice),
-                                    y: .value("Option Price", point.optionPrice)
-                                )
-                                .foregroundStyle(.blue)
-                                .interpolationMethod(.catmullRom)
-                                
-                                // Highlight current spot price
-                                if abs(point.spotPrice - spotPrice) < 1 {
-                                    PointMark(
-                                        x: .value("Spot Price", point.spotPrice),
-                                        y: .value("Option Price", point.optionPrice)
-                                    )
-                                    .foregroundStyle(.red)
-                                    .symbolSize(100)
-                                }
-                            }
-                            
-                            // Add strike price line
-                            RuleMark(x: .value("Strike", strikePrice))
-                                .foregroundStyle(.gray)
-                                .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                        }
-                        .frame(height: 200)
-                        .chartXAxis {
-                            AxisMarks { value in
-                                AxisGridLine()
-                                AxisTick()
-                                AxisValueLabel {
-                                    if let price = value.as(Double.self) {
-                                        Text(currency.symbol + "\(Int(price))")
-                                    }
-                                }
-                            }
-                        }
-                        .chartYAxis {
-                            AxisMarks { value in
-                                AxisGridLine()
-                                AxisTick()
-                                AxisValueLabel {
-                                    if let price = value.as(Double.self) {
-                                        Text(currency.symbol + String(format: "%.2f", price))
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Text("Red dot shows current spot price. Dashed line shows strike price.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(16)
-                }
-                .groupBoxStyle(FinancialGroupBoxStyle())
+            if let chartData = calculationResult?.chartData, !chartData.isEmpty {
+                 FinancialChartView(
+                    data: chartData,
+                    chartType: .line,
+                    title: "Price Sensitivity",
+                    currency: currency,
+                    height: 250
+                )
             }
         }
     }
@@ -607,66 +553,35 @@ struct OptionsCalculatorView: View {
         isCalculating = true
         validationErrors = []
         
+        let tempCalculation = OptionsCalculation(
+            name: calculationName,
+            spotPrice: spotPrice,
+            strikePrice: strikePrice,
+            timeToExpiry: timeToExpiry,
+            riskFreeRate: riskFreeRate,
+            volatility: volatility,
+            optionType: optionType,
+            currency: currency
+        )
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            let optionPrice = CalculationEngine.calculateBlackScholesOptionPrice(
-                spotPrice: spotPrice,
-                strikePrice: strikePrice,
-                timeToExpiry: timeToExpiry,
-                riskFreeRate: riskFreeRate,
-                volatility: volatility,
-                optionType: optionType
-            )
-            
-            let delta = CalculationEngine.calculateOptionDelta(
-                spotPrice: spotPrice,
-                strikePrice: strikePrice,
-                timeToExpiry: timeToExpiry,
-                riskFreeRate: riskFreeRate,
-                volatility: volatility,
-                optionType: optionType
-            )
-            
-            // Calculate other Greeks (simplified calculations)
-            let gamma = calculateGamma()
-            let theta = calculateTheta()
-            let vega = calculateVega()
-            let rho = calculateRho()
-            
-            calculationResult = OptionsResult(
-                optionPrice: optionPrice,
-                delta: delta,
-                gamma: gamma,
-                theta: theta,
-                vega: vega,
-                rho: rho
-            )
-            
+            calculationResult = tempCalculation.result
+            if !tempCalculation.isValid {
+                validationErrors = tempCalculation.validationErrors
+            } else {
+                calculation = tempCalculation
+            }
             isCalculating = false
         }
     }
     
     private func validateInputs() {
         validationErrors = []
-        
-        if calculationName.isEmpty {
-            validationErrors.append("Calculation name is required")
-        }
-        
-        if spotPrice <= 0 {
-            validationErrors.append("Spot price must be positive")
-        }
-        
-        if strikePrice <= 0 {
-            validationErrors.append("Strike price must be positive")
-        }
-        
-        if timeToExpiry <= 0 {
-            validationErrors.append("Time to expiry must be positive")
-        }
-        
-        if volatility <= 0 {
-            validationErrors.append("Volatility must be positive")
-        }
+        if calculationName.isEmpty { validationErrors.append("Calculation name is required") }
+        if spotPrice <= 0 { validationErrors.append("Spot price must be positive") }
+        if strikePrice <= 0 { validationErrors.append("Strike price must be positive") }
+        if timeToExpiry <= 0 { validationErrors.append("Time to expiry must be positive") }
+        if volatility <= 0 { validationErrors.append("Volatility must be positive") }
     }
     
     private func clearResults() {
@@ -686,26 +601,24 @@ struct OptionsCalculatorView: View {
     }
     
     private func saveCalculation() {
-        // Implementation for saving calculation
+        guard let calc = calculation, calc.isValid else { return }
+        modelContext.insert(calc)
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save calculation: \(error)")
+        }
     }
     
     private func getMoneyness() -> String {
         if optionType == .call {
-            if spotPrice > strikePrice * 1.05 {
-                return "In-the-Money"
-            } else if spotPrice < strikePrice * 0.95 {
-                return "Out-of-the-Money"
-            } else {
-                return "At-the-Money"
-            }
+            if spotPrice > strikePrice * 1.05 { return "In-the-Money" }
+            else if spotPrice < strikePrice * 0.95 { return "Out-of-the-Money" }
+            else { return "At-the-Money" }
         } else {
-            if spotPrice < strikePrice * 0.95 {
-                return "In-the-Money"
-            } else if spotPrice > strikePrice * 1.05 {
-                return "Out-of-the-Money"
-            } else {
-                return "At-the-Money"
-            }
+            if spotPrice < strikePrice * 0.95 { return "In-the-Money" }
+            else if spotPrice > strikePrice * 1.05 { return "Out-of-the-Money" }
+            else { return "At-the-Money" }
         }
     }
     
@@ -725,25 +638,15 @@ struct OptionsCalculatorView: View {
         }
     }
     
-    private func generateRiskInsights() -> [String] {
-        guard let result = calculationResult else { return [] }
-        
+    private func generateRiskInsights(result: CalculationResult) -> [String] {
         var insights: [String] = []
         
-        if abs(result.delta) > 0.7 {
+        if let delta = result.secondaryValues["Delta"], abs(delta) > 0.7 {
             insights.append("High delta indicates strong correlation with underlying price movements")
         }
         
-        if result.gamma > 0.05 {
+        if let gamma = result.secondaryValues["Gamma"], gamma > 0.05 {
             insights.append("High gamma suggests delta will change rapidly with price movements")
-        }
-        
-        if abs(result.theta) > result.optionPrice * 0.1 {
-            insights.append("High time decay - option loses significant value daily")
-        }
-        
-        if result.vega > result.optionPrice * 0.5 {
-            insights.append("High vega indicates strong sensitivity to volatility changes")
         }
         
         if timeToExpiry < 0.083 { // Less than 1 month
@@ -752,138 +655,12 @@ struct OptionsCalculatorView: View {
         
         return insights
     }
-    
-    private func generatePriceSensitivityData() -> [PriceSensitivityPoint] {
-        var data: [PriceSensitivityPoint] = []
-        let priceRange = spotPrice * 0.4 // ±40% of current spot price
-        
-        for i in stride(from: spotPrice - priceRange, through: spotPrice + priceRange, by: priceRange / 20) {
-            let optionPrice = CalculationEngine.calculateBlackScholesOptionPrice(
-                spotPrice: i,
-                strikePrice: strikePrice,
-                timeToExpiry: timeToExpiry,
-                riskFreeRate: riskFreeRate,
-                volatility: volatility,
-                optionType: optionType
-            )
-            data.append(PriceSensitivityPoint(spotPrice: i, optionPrice: optionPrice))
-        }
-        
-        return data
-    }
-    
-    // Simplified Greeks calculations
-    private func calculateGamma() -> Double {
-        // Numerical approximation
-        let h = 0.01
-        let delta1 = CalculationEngine.calculateOptionDelta(
-            spotPrice: spotPrice + h,
-            strikePrice: strikePrice,
-            timeToExpiry: timeToExpiry,
-            riskFreeRate: riskFreeRate,
-            volatility: volatility,
-            optionType: optionType
-        )
-        let delta2 = CalculationEngine.calculateOptionDelta(
-            spotPrice: spotPrice - h,
-            strikePrice: strikePrice,
-            timeToExpiry: timeToExpiry,
-            riskFreeRate: riskFreeRate,
-            volatility: volatility,
-            optionType: optionType
-        )
-        return (delta1 - delta2) / (2 * h)
-    }
-    
-    private func calculateTheta() -> Double {
-        // Numerical approximation
-        let h = 1.0 / 365.0 // 1 day
-        guard timeToExpiry > h else { return 0 }
-        
-        let price1 = CalculationEngine.calculateBlackScholesOptionPrice(
-            spotPrice: spotPrice,
-            strikePrice: strikePrice,
-            timeToExpiry: timeToExpiry,
-            riskFreeRate: riskFreeRate,
-            volatility: volatility,
-            optionType: optionType
-        )
-        let price2 = CalculationEngine.calculateBlackScholesOptionPrice(
-            spotPrice: spotPrice,
-            strikePrice: strikePrice,
-            timeToExpiry: timeToExpiry - h,
-            riskFreeRate: riskFreeRate,
-            volatility: volatility,
-            optionType: optionType
-        )
-        return price2 - price1
-    }
-    
-    private func calculateVega() -> Double {
-        // Numerical approximation
-        let h = 0.01
-        let price1 = CalculationEngine.calculateBlackScholesOptionPrice(
-            spotPrice: spotPrice,
-            strikePrice: strikePrice,
-            timeToExpiry: timeToExpiry,
-            riskFreeRate: riskFreeRate,
-            volatility: volatility + h,
-            optionType: optionType
-        )
-        let price2 = CalculationEngine.calculateBlackScholesOptionPrice(
-            spotPrice: spotPrice,
-            strikePrice: strikePrice,
-            timeToExpiry: timeToExpiry,
-            riskFreeRate: riskFreeRate,
-            volatility: volatility - h,
-            optionType: optionType
-        )
-        return (price1 - price2) / (2 * h)
-    }
-    
-    private func calculateRho() -> Double {
-        // Numerical approximation
-        let h = 0.01
-        let price1 = CalculationEngine.calculateBlackScholesOptionPrice(
-            spotPrice: spotPrice,
-            strikePrice: strikePrice,
-            timeToExpiry: timeToExpiry,
-            riskFreeRate: riskFreeRate + h,
-            volatility: volatility,
-            optionType: optionType
-        )
-        let price2 = CalculationEngine.calculateBlackScholesOptionPrice(
-            spotPrice: spotPrice,
-            strikePrice: strikePrice,
-            timeToExpiry: timeToExpiry,
-            riskFreeRate: riskFreeRate - h,
-            volatility: volatility,
-            optionType: optionType
-        )
-        return (price1 - price2) / (2 * h)
-    }
-}
-
-// MARK: - Supporting Types
-
-struct OptionsResult {
-    let optionPrice: Double
-    let delta: Double
-    let gamma: Double
-    let theta: Double
-    let vega: Double
-    let rho: Double
-}
-
-struct PriceSensitivityPoint {
-    let spotPrice: Double
-    let optionPrice: Double
 }
 
 // MARK: - Supporting Views
 
 struct GreeksAnalysisView: View {
-    let baseResult: OptionsResult
+    let baseResult: CalculationResult
     let optionData: (spotPrice: Double, strikePrice: Double, timeToExpiry: Double, riskFreeRate: Double, volatility: Double, optionType: CalculationEngine.OptionType)
     @Environment(\.dismiss) private var dismiss
     
@@ -896,19 +673,30 @@ struct GreeksAnalysisView: View {
                         .fontWeight(.bold)
                         .padding()
                     
-                    // Greeks explanations with charts would go here
-                    GroupBox("Delta Analysis") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Delta measures the rate of change of option price with respect to the underlying asset price.")
-                                .font(.body)
-                            
-                            DetailRow(title: "Current Delta", value: String(format: "%.4f", baseResult.delta))
-                            DetailRow(title: "Interpretation", value: "For every $1 move in underlying, option moves $\(String(format: "%.2f", abs(baseResult.delta)))")
+                    if let delta = baseResult.secondaryValues["Delta"] {
+                        GroupBox("Delta Analysis") {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Delta measures the rate of change of option price with respect to the underlying asset price.")
+                                    .font(.body)
+
+                                DetailRow(title: "Current Delta", value: String(format: "%.4f", delta))
+                                DetailRow(title: "Interpretation", value: "For every $1 move in underlying, option moves $\(String(format: "%.2f", abs(delta)))")
+                            }
+                            .padding()
                         }
-                        .padding()
                     }
                     
-                    // More Greeks analysis would continue here...
+                    if let gamma = baseResult.secondaryValues["Gamma"] {
+                        GroupBox("Gamma Analysis") {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Gamma measures the rate of change of Delta with respect to the underlying asset price.")
+                                    .font(.body)
+
+                                DetailRow(title: "Current Gamma", value: String(format: "%.6f", gamma))
+                            }
+                            .padding()
+                        }
+                    }
                 }
                 .padding()
             }
@@ -926,7 +714,7 @@ struct GreeksAnalysisView: View {
 }
 
 struct VolatilitySurfaceView: View {
-    let baseResult: OptionsResult
+    let baseResult: CalculationResult
     let optionData: (spotPrice: Double, strikePrice: Double, timeToExpiry: Double, riskFreeRate: Double, volatility: Double, optionType: CalculationEngine.OptionType)
     @Environment(\.dismiss) private var dismiss
     
@@ -939,13 +727,12 @@ struct VolatilitySurfaceView: View {
                         .fontWeight(.bold)
                         .padding()
                     
-                    // Volatility surface visualization would go here
                     GroupBox("Implied Volatility Analysis") {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Current Implied Volatility: \(String(format: "%.2f%%", optionData.volatility))")
                                 .font(.headline)
                             
-                            Text("Volatility surface shows how implied volatility varies across different strikes and expiration dates.")
+                            Text("Volatility surface shows how implied volatility varies across different strikes and expiration dates. (Visualization placeholder)")
                                 .font(.body)
                                 .foregroundColor(.secondary)
                         }

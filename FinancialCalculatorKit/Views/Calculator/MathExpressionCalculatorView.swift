@@ -14,6 +14,8 @@ struct MathExpressionCalculatorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(MainViewModel.self) private var mainViewModel
     
+    @State private var calculation: MathExpressionCalculation?
+    @State private var calculationName: String = "My Expression"
     @State private var expression: String = ""
     @State private var result: Double?
     @State private var variables: [String: Double] = [:]
@@ -48,7 +50,7 @@ struct MathExpressionCalculatorView: View {
         ExampleExpression(
             name: "Bond Duration",
             expression: "sum(t * CF_t / (1+y)^t) / P",
-            description: "Macaulay Duration calculation",
+            description: "Macaulay Duration calculation (simplified)",
             variables: ["t": 5, "CF_t": 50, "y": 0.05, "P": 1000]
         ),
         ExampleExpression(
@@ -89,6 +91,11 @@ struct MathExpressionCalculatorView: View {
                 .disabled(expression.isEmpty)
                 .keyboardShortcut(.return, modifiers: [.command])
                 
+                Button("Save") {
+                    saveCalculation()
+                }
+                .disabled(result == nil)
+
                 Button("Clear") {
                     clearAll()
                 }
@@ -105,12 +112,23 @@ struct MathExpressionCalculatorView: View {
         }
         .onAppear {
             // Load default variables
-            variables = [
-                "pi": Double.pi,
-                "e": 2.718281828459045,
-                "sqrt2": sqrt(2),
-                "phi": (1 + sqrt(5)) / 2 // Golden ratio
-            ]
+            if variables.isEmpty {
+                variables = [
+                    "pi": Double.pi,
+                    "e": 2.718281828459045,
+                    "sqrt2": sqrt(2),
+                    "phi": (1 + sqrt(5)) / 2 // Golden ratio
+                ]
+            }
+
+            // If editing an existing calculation, load its data
+            if let selected = mainViewModel.selectedCalculation as? MathExpressionCalculation {
+                self.calculation = selected
+                self.calculationName = selected.name
+                self.expression = selected.expression
+                self.variables = selected.variables
+                evaluateExpression()
+            }
         }
     }
     
@@ -131,6 +149,14 @@ struct MathExpressionCalculatorView: View {
     private var expressionInputSection: some View {
         GroupBox("Expression") {
             VStack(spacing: 12) {
+                // Name Input
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Name")
+                        .font(.headline)
+                    TextField("Calculation Name", text: $calculationName)
+                        .textFieldStyle(.roundedBorder)
+                }
+
                 // Expression input
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Mathematical Expression")
@@ -448,10 +474,28 @@ struct MathExpressionCalculatorView: View {
     private func loadExample(_ example: ExampleExpression) {
         expression = example.expression
         variables = variables.merging(example.variables) { _, new in new }
+        calculationName = example.name
         errorMessage = nil
         result = nil
     }
     
+    private func saveCalculation() {
+        guard !calculationName.isEmpty, !expression.isEmpty else { return }
+
+        let calc = MathExpressionCalculation(
+            name: calculationName,
+            expression: expression,
+            variables: variables
+        )
+        modelContext.insert(calc)
+
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save calculation: \(error)")
+        }
+    }
+
     private func formatResult(_ value: Double) -> String {
         if value.isInfinite {
             return value > 0 ? "∞" : "-∞"

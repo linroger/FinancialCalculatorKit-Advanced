@@ -19,6 +19,11 @@ struct FinancialCalculatorKitApp: App {
             forName: NSValueTransformerName("CashFlowsTransformer")
         )
         
+        ValueTransformer.setValueTransformer(
+            StringDoubleMapTransformer(),
+            forName: NSValueTransformerName("StringDoubleMapTransformer")
+        )
+
         // Now create the ModelContainer
         let schema = Schema([
             FinancialCalculation.self,
@@ -27,6 +32,9 @@ struct FinancialCalculatorKitApp: App {
             BondCalculation.self,
             InvestmentCalculation.self,
             DepreciationCalculation.self,
+            OptionsCalculation.self,
+            MathExpressionCalculation.self,
+            CurrencyConversionCalculation.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

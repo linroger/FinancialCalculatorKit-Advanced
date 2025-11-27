@@ -96,4 +96,23 @@ enum CalculationType: String, CaseIterable, Identifiable {
             return "arrow.left.arrow.right"
         }
     }
+
+    var category: CalculationCategory {
+        switch self {
+        case .timeValue, .loan, .mortgage, .depreciation:
+            return .basics
+        case .bond, .investment, .options:
+            return .investment
+        case .currency, .conversion, .mathExpression:
+            return .tools
+        }
+    }
+}
+
+enum CalculationCategory: String, CaseIterable, Identifiable {
+    case basics = "Basics"
+    case investment = "Investment"
+    case tools = "Tools"
+
+    var id: String { rawValue }
 }
