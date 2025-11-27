@@ -12,8 +12,8 @@ import SwiftData
 /// Main view model coordinating the entire application state
 @Observable
 class MainViewModel {
-    /// Currently selected calculation type
-    var selectedCalculationType: CalculationType = .timeValue
+    /// Currently selected calculation type. `nil` means dashboard.
+    var selectedCalculationType: CalculationType? = nil
     
     /// Selected calculation for editing
     var selectedCalculation: FinancialCalculation?
@@ -64,7 +64,7 @@ class MainViewModel {
     }
     
     /// Create a new calculation of the specified type
-    func createNewCalculation(type: CalculationType) {
+    func createNewCalculation(type: CalculationType?) {
         selectedCalculationType = type
         selectedCalculation = nil
         showingCalculationSheet = true

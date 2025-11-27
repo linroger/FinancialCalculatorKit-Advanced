@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 /// Currency converter with real-time exchange rates
 struct CurrencyConverterView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(MainViewModel.self) private var mainViewModel
     
     @State private var amount: Double = 100.0
@@ -19,6 +21,7 @@ struct CurrencyConverterView: View {
     @State private var isLoading: Bool = false
     @State private var lastUpdated: Date = Date()
     @State private var showAllCurrencies: Bool = false
+    @State private var conversionHistory: [CurrencyConversionCalculation] = []
     
     // Mock exchange rates for demo (in real app, fetch from API)
     private let mockExchangeRates: [String: [String: Double]] = [
@@ -43,12 +46,17 @@ struct CurrencyConverterView: View {
                 if showAllCurrencies {
                     allCurrenciesSection
                 }
+
+                if !conversionHistory.isEmpty {
+                    historySection
+                }
             }
             .padding(24)
         }
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             performConversion()
+            loadHistory()
         }
     }
     
@@ -254,6 +262,12 @@ struct CurrencyConverterView: View {
                 .padding(16)
             }
             .groupBoxStyle(FinancialGroupBoxStyle())
+
+            Button("Save to History") {
+                saveConversion()
+            }
+            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity)
     }
@@ -339,6 +353,47 @@ struct CurrencyConverterView: View {
         .transition(.opacity.combined(with: .move(edge: .bottom)))
     }
     
+    @ViewBuilder
+    private var historySection: some View {
+        GroupBox("Conversion History") {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("Recent Conversions")
+                        .font(.headline)
+                    Spacer()
+                    Button("Clear") {
+                        // In a real app, delete from context
+                        conversionHistory.removeAll()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+
+                if conversionHistory.isEmpty {
+                    Text("No history yet")
+                        .foregroundColor(.secondary)
+                } else {
+                    ForEach(conversionHistory) { item in
+                        HStack {
+                            Text(item.sourceCurrency.formatValue(item.sourceAmount))
+                            Image(systemName: "arrow.right")
+                                .font(.caption)
+                            Text(item.currency.formatValue(item.sourceAmount * item.exchangeRate))
+                            Spacer()
+                            Text(item.createdDate.formatted(date: .abbreviated, time: .shortened))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.vertical, 4)
+                        Divider()
+                    }
+                }
+            }
+            .padding(16)
+        }
+        .groupBoxStyle(FinancialGroupBoxStyle())
+    }
+
     private func performConversion() {
         exchangeRate = getExchangeRate(from: fromCurrency, to: toCurrency)
         convertedAmount = amount * exchangeRate
@@ -373,6 +428,35 @@ struct CurrencyConverterView: View {
         
         // Default fallback
         return 1.0
+    }
+
+    private func saveConversion() {
+        let calc = CurrencyConversionCalculation(
+            name: "Conversion \(Date().formatted())",
+            sourceAmount: amount,
+            sourceCurrency: fromCurrency,
+            targetCurrency: toCurrency,
+            exchangeRate: exchangeRate
+        )
+        modelContext.insert(calc)
+        do {
+            try modelContext.save()
+            loadHistory()
+        } catch {
+            print("Failed to save conversion: \(error)")
+        }
+    }
+
+    private func loadHistory() {
+        // Since we are using SwiftData query in the view, this manual load is just for the local state array
+        // In a real app, we might use @Query
+        // For now, let's just use a fetch descriptor
+        let descriptor = FetchDescriptor<CurrencyConversionCalculation>(sortBy: [SortDescriptor(\.createdDate, order: .reverse)])
+        do {
+            conversionHistory = try modelContext.fetch(descriptor)
+        } catch {
+            print("Failed to fetch history: \(error)")
+        }
     }
 }
 
