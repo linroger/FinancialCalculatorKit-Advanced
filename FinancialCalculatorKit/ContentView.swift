@@ -10,7 +10,6 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var calculations: [FinancialCalculation]
     @State private var viewModel = MainViewModel()
     @State private var selectedCategory: CalculationCategory? = .basics
     
@@ -54,7 +53,18 @@ struct SidebarView: View {
     @Bindable var viewModel: MainViewModel
     @Binding var selectedCategory: CalculationCategory?
     @Environment(\.modelContext) private var modelContext
-    @Query private var calculations: [FinancialCalculation]
+
+    // Queries for all calculation types
+    @Query(sort: \TimeValueCalculation.lastModified, order: .reverse) private var timeValueCalculations: [TimeValueCalculation]
+    @Query(sort: \LoanCalculation.lastModified, order: .reverse) private var loanCalculations: [LoanCalculation]
+    @Query(sort: \InvestmentCalculation.lastModified, order: .reverse) private var investmentCalculations: [InvestmentCalculation]
+    @Query(sort: \BondCalculation.lastModified, order: .reverse) private var bondCalculations: [BondCalculation]
+    @Query(sort: \OptionsCalculation.lastModified, order: .reverse) private var optionsCalculations: [OptionsCalculation]
+    @Query(sort: \MathExpressionCalculation.lastModified, order: .reverse) private var mathCalculations: [MathExpressionCalculation]
+    @Query(sort: \DepreciationCalculation.lastModified, order: .reverse) private var depreciationCalculations: [DepreciationCalculation]
+
+    // Legacy support
+    @Query private var legacyCalculations: [FinancialCalculation]
     
     var body: some View {
         List(selection: $viewModel.selectedCalculationType) {
@@ -76,7 +86,7 @@ struct SidebarView: View {
             }
             
             Section("Recent Calculations") {
-                ForEach(recentCalculations) { calculation in
+                ForEach(allRecentCalculations) { calculation in
                     CalculationRowView(calculation: calculation)
                         .environment(viewModel)
                 }
@@ -108,15 +118,26 @@ struct SidebarView: View {
         }
     }
     
-    private var recentCalculations: [FinancialCalculation] {
-        viewModel.filteredCalculations(calculations)
+    private var allRecentCalculations: [FinancialCalculation] {
+        var allItems: [FinancialCalculation] = []
+
+        allItems.append(contentsOf: timeValueCalculations)
+        allItems.append(contentsOf: loanCalculations)
+        allItems.append(contentsOf: investmentCalculations)
+        allItems.append(contentsOf: bondCalculations)
+        allItems.append(contentsOf: optionsCalculations)
+        allItems.append(contentsOf: mathCalculations)
+        allItems.append(contentsOf: depreciationCalculations)
+        allItems.append(contentsOf: legacyCalculations)
+
+        return viewModel.filteredCalculations(allItems)
             .prefix(10)
             .map { $0 }
     }
     
     private func deleteCalculations(offsets: IndexSet) {
         for index in offsets {
-            let calculation = recentCalculations[index]
+            let calculation = allRecentCalculations[index]
             viewModel.deleteCalculation(calculation, from: modelContext)
         }
     }

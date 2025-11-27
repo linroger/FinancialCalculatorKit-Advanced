@@ -16,6 +16,8 @@ struct DashboardView: View {
     @Query(sort: \TimeValueCalculation.lastModified, order: .reverse) private var recentTVM: [TimeValueCalculation]
     @Query(sort: \LoanCalculation.lastModified, order: .reverse) private var recentLoans: [LoanCalculation]
     @Query(sort: \InvestmentCalculation.lastModified, order: .reverse) private var recentInvestments: [InvestmentCalculation]
+    @Query(sort: \OptionsCalculation.lastModified, order: .reverse) private var recentOptions: [OptionsCalculation]
+    @Query(sort: \MathExpressionCalculation.lastModified, order: .reverse) private var recentMath: [MathExpressionCalculation]
 
     var body: some View {
         ScrollView {
@@ -58,15 +60,23 @@ struct DashboardView: View {
                         .font(.headline)
                         .padding(.horizontal)
 
-                    if recentTVM.isEmpty && recentLoans.isEmpty && recentInvestments.isEmpty {
+                    if recentActivity.isEmpty {
                         ContentUnavailableView("No Recent Calculations", systemImage: "clock", description: Text("Your calculation history will appear here."))
                     } else {
                         LazyVStack(spacing: 12) {
-                            ForEach(recentTVM.prefix(3)) { calc in
-                                RecentActivityRow(icon: "clock.arrow.circlepath", title: calc.name, subtitle: "TVM Calculator", date: calc.lastModified, result: calc.result.formattedPrimaryValue)
-                            }
-                            ForEach(recentLoans.prefix(3)) { calc in
-                                RecentActivityRow(icon: "creditcard", title: calc.name, subtitle: calc.loanType.displayName, date: calc.lastModified, result: calc.result.formattedPrimaryValue)
+                            ForEach(recentActivity) { activity in
+                                Button(action: {
+                                    mainViewModel.editCalculation(activity.calculation)
+                                }) {
+                                    RecentActivityRow(
+                                        icon: activity.icon,
+                                        title: activity.title,
+                                        subtitle: activity.subtitle,
+                                        date: activity.date,
+                                        result: activity.result
+                                    )
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding(.horizontal)
@@ -77,6 +87,83 @@ struct DashboardView: View {
         }
         .background(Color(NSColor.windowBackgroundColor))
     }
+
+    // Aggregate and sort recent activity
+    private var recentActivity: [ActivityItem] {
+        var items: [ActivityItem] = []
+
+        for item in recentTVM.prefix(5) {
+            items.append(ActivityItem(
+                id: item.id,
+                title: item.name,
+                subtitle: "TVM Calculator",
+                date: item.lastModified,
+                result: item.result.formattedPrimaryValue,
+                icon: "clock.arrow.circlepath",
+                calculation: item
+            ))
+        }
+
+        for item in recentLoans.prefix(5) {
+            items.append(ActivityItem(
+                id: item.id,
+                title: item.name,
+                subtitle: item.loanType.displayName,
+                date: item.lastModified,
+                result: item.result.formattedPrimaryValue,
+                icon: "creditcard",
+                calculation: item
+            ))
+        }
+
+        for item in recentInvestments.prefix(5) {
+            items.append(ActivityItem(
+                id: item.id,
+                title: item.name,
+                subtitle: "Investment Analysis",
+                date: item.lastModified,
+                result: item.result.formattedPrimaryValue,
+                icon: "chart.bar.fill",
+                calculation: item
+            ))
+        }
+
+        for item in recentOptions.prefix(5) {
+            items.append(ActivityItem(
+                id: item.id,
+                title: item.name,
+                subtitle: "Options Calculator",
+                date: item.lastModified,
+                result: item.result.formattedPrimaryValue,
+                icon: "function",
+                calculation: item
+            ))
+        }
+
+        for item in recentMath.prefix(5) {
+            items.append(ActivityItem(
+                id: item.id,
+                title: item.name,
+                subtitle: "Math Expression",
+                date: item.lastModified,
+                result: item.result.formattedPrimaryValue,
+                icon: "x.squareroot",
+                calculation: item
+            ))
+        }
+
+        return items.sorted(by: { $0.date > $1.date }).prefix(10).map { $0 }
+    }
+}
+
+struct ActivityItem: Identifiable {
+    let id: UUID
+    let title: String
+    let subtitle: String
+    let date: Date
+    let result: String
+    let icon: String
+    let calculation: FinancialCalculation // Uses the protocol/base class
 }
 
 struct QuickActionCard: View {
@@ -86,7 +173,7 @@ struct QuickActionCard: View {
 
     var body: some View {
         Button(action: {
-            mainViewModel.selectedCalculationType = type
+            mainViewModel.createNewCalculation(type: type)
         }) {
             VStack(alignment: .leading, spacing: 12) {
                 Image(systemName: type.systemImage)
@@ -199,5 +286,6 @@ struct RecentActivityRow: View {
                         .stroke(Color(NSColor.separatorColor), lineWidth: 0.5)
                 )
         )
+        .contentShape(Rectangle())
     }
 }
